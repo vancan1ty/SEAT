@@ -1,0 +1,9 @@
+Team 41 Epilepsy Modeling: Meeting Minutes
+
+* 8/28/15
+[Currell] 
+Today Johnny, Michael, and I worked together during the free class period. 
+
+Johnny set up github for us.
+Michael and I discussed/worked with MNE python and EEGLAB.
+I worked on the document eeglab_usage.org, which explains how to do the simple EEGLAB tasks.

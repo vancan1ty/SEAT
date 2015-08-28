@@ -1,0 +1,45 @@
+Currell Berry
+8/28/2015
+Document best viewed with emacs and visual-line-mode (autowrapping).
+
+This document explains how to use EEGLAB on your computer. 
+
+* 1. Get eeglab and fieldtrip loaded into matlab. 
+You will need to have downloaded "eeglab" and "fieldtrip".
+Then, you will be able to run lines similar to the following. 
+#+BEGIN_SRC matlab
+addpath('C:\Users\vancan1ty\Desktop\working_set\eeglab13_4_4b')
+eeglab
+cd C:\Users\vancan1ty\Desktop\working_set\eeglab13_4_4b\
+addpath('C:\Users\vancan1ty\Desktop\working_set\fieldtrip-20150822\')
+#+END_SRC
+  
+All GUI instructions which follow assume you are starting from the eeglab window. 
+* 2.Load in a dataset
+To load the sample dataset click File->Load Existing Dataset.  Navigate to sample_data, and select eeglab_data.set.
+
+Under File->Import Data there are a variety of options to load in data not yet in EEGLAB format.
+
+* 3. run ICA
+running ICA enables various functionality which relies on isolation of independent components
+
+From eeglab window:
+Tools->Run ICA
+
+Now the various features which rely on independent components existing should work.  
+
+* 4. Load in Channel Locations.
+EEGLAB utilizes physical channel locations in various features (basically all the "mapping" features).
+
+There are a couple of different ways to load in the channel locations.  For the sample dataset, you can do the following
+1. Click Edit->Channel Locations
+2. Click "Cancel" on the popup which comes up.
+3. Click "Read Loactions" on the new popup.
+4. Select sample_data/eeglab_chan32.locs as your location file.
+5. Simply click "ok" on the popup which asks you for the file format.
+6. Click "ok" to save your changes and exit the channel locations loader.
+
+* 5. Other features.
+I'm still trying to figure out how to use fieldtrip to perform localization.  The features under Tools->Locate Dipoles using DIPFIT 2.x aren't working for me.
+
+Play around with EEGLAB, there are a bunch of plots and stuff it can make for you.  I'm still looking into how/if we can use various features.
