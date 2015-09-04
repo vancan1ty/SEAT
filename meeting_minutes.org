@@ -7,3 +7,9 @@ Today Johnny, Michael, and I worked together during the free class period.
 Johnny set up github for us.
 Michael and I discussed/worked with MNE python and EEGLAB.
 I worked on the document eeglab_usage.org, which explains how to do the simple EEGLAB tasks.
+* 9/1/15
+[Currell]
+Today Johnny, Michael, Utkarsh and I met with Dr Tarquinio.  We discussed plans for the semester, and obtained a relatively small amount of data.  Dr Tarquinio expressed a preference for Python.  We need to go back to get more data.
+* 9/4/2015
+[Currell]
+Today Justin, Johnny, Utkarsh and I met in class.  We discussed splitting up duties over the weekend (spike detection and artifact removal).  Johnny looked into IEEG data and whether or not it is appropriately labeled (so far, no).  Utkarsh planned artifact reduction.  Justin installed MNE on his computer.  Currell worked with MNE-Python to try to import edf data and display it (not working yet.  there is some kind of error with "resizing arrays" I need to figure out).
