@@ -10,35 +10,6 @@ import scipy as sp
 from scipy.signal import butter, lfilter, freqz
 from PIL import Image
 
-data = mne.io.read_raw_edf("../EEGDATA/CAPSTONE_AB/BASHAREE_TEST.edf",preload=True)
-#data.plot()
-
-thekernel = sp.signal.morlet(128)
-plt.plot(thekernel)
-plt.show()
-
-#start, stop = data.time_as_index([100, 200])
-#ldata, ltimes = data[:, start:stop]
-#ldata2, times2 = data[2:20:3, start:stop]
-
-#plt.plot([1,5,4])
-#plt.plot([3,4,3])
-#plt.show()
-
-accumulator = []
-for arr in ldata:
-    convolved = sp.signal.correlate(arr, thekernel)
-    accumulator.append(convolved)
-accumulated = np.vstack(accumulator)
-
-for arr in ldata:
-    plt.plot(arr)
-plt.show()
-
-for arr in accumulated:
-    plt.plot(arr)
-plt.show()
-
 #below is filter stuff
 #derived from http://stackoverflow.com/questions/25191620/creating-lowpass-filter-in-scipy-understanding-methods-and-units
 def butter_lowpass(cutoff, fs, order=5):
@@ -145,4 +116,88 @@ def bandpass_stuff():
     plt.grid()
     myshow()
 
-lowpass_stuff()
+def dostuff():
+    data = mne.io.read_raw_edf("../EEGDATA/CAPSTONE_AB/BASHAREE_TEST.edf",preload=True)
+    start, stop = data.time_as_index([100, 200])
+    ldata, ltimes = data[2:8, start:stop]
+    spikesStructure = stupidIdentifySpikes(ldata, cutoff=0.0133)
+    linSpikes = convertSpikesStructureToLinearForm(spikesStructure)
+    for arr in ldata:
+        plt.plot(arr)
+    for spike in linSpikes:
+        plt.axvline(spike, color='k')
+    plt.show()
+
+def convertSpikesStructureToLinearForm(spikesstructure):
+    """converts a spikesStructure which identifies spikes "detected" on each
+    channel into a simple array of sample nos where spikes were detected"""
+    spikeSet = set()
+    for arr in spikesstructure:
+        for item in arr:
+            spikeSet.add(item)
+    out = list(spikeSet)  
+    out.sort()
+    return out
+
+def stupidIdentifySpikes(data, spikekernellength=128, cutoff=0.0133):
+    thekernel = sp.signal.morlet(spikekernellength)
+    #[CB 9/5/2015] So this kernel is only for "detecting" spikes of a given format.
+    #a.k.a. it sucks.
+
+    #plt.plot(thekernel)
+    #plt.show()
+    #ldata2, times2 = data[2:20:3, start:stop]
+
+    accumulator = []
+    for arr in ldata:
+        correlated = sp.signal.correlate(arr, thekernel)
+        accumulator.append(correlated)
+    accumulated = np.vstack(accumulator)
+    #for arr in accumulated:
+    #    plt.plot(arr)
+    #plt.show()
+
+    spikesout = []
+    for i in range(0, len(accumulated)):
+        spikesout.append([])
+        for i2 in range(0, len(accumulated[i])):
+            if(accumulated[i][i2]>=cutoff):
+                spikesout[i].append(i2)
+    return spikesout 
+    
+    
+    
+
+# def show_data(start_time, end_time, amplitude_adjust, lowpass ,highpass):
+    
+# t = np.arange(0, len(data))
+# ticklocs = []
+# ax = plt.subplot(212)
+# plt.xlim(0,10)
+# plt.xticks(np.arange(10))
+# dmin = data.min()
+# dmax = data.max()
+# dr = (dmax - dmin)*0.7 # Crowd them a bit.
+# y0 = dmin
+# y1 = (47-1) * dr + dmax
+# plt.ylim(y0, y1)
+
+# segs = []
+# for i in range(47):
+#     segs.append(np.hstack((t[:,np.newaxis], data[:,i,np.newaxis])))
+#     ticklocs.append(i*dr)
+
+# offsets = np.zeros((numRows,2), dtype=float)
+# offsets[:,1] = ticklocs
+
+# lines = LineCollection(segs, offsets=offsets,
+#                        transOffset=None,
+#                        )
+
+# ax.add_collection(lines)
+
+# # set the yticks to use axes coords on the y axis
+# ax.set_yticks(ticklocs)
+# ax.set_yticklabels(['PG3', 'PG5', 'PG7', 'PG9'])
+
+# xlabel('time (s)')
