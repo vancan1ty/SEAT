@@ -149,7 +149,7 @@ def stupidIdentifySpikes(data, spikekernellength=128, cutoff=0.0133):
     #ldata2, times2 = data[2:20:3, start:stop]
 
     accumulator = []
-    for arr in ldata:
+    for arr in data:
         correlated = sp.signal.correlate(arr, thekernel)
         accumulator.append(correlated)
     accumulated = np.vstack(accumulator)
@@ -164,8 +164,6 @@ def stupidIdentifySpikes(data, spikekernellength=128, cutoff=0.0133):
             if(accumulated[i][i2]>=cutoff):
                 spikesout[i].append(i2)
     return spikesout 
-    
-    
     
 
 # def show_data(start_time, end_time, amplitude_adjust, lowpass ,highpass):

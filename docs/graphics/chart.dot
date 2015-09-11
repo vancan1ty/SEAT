@@ -1,0 +1,52 @@
+digraph {
+
+input[label="EEG Data",shape="box"];
+subgraph cluster_preprocessing {
+         label="Preprocessing";
+         bandpass[label="Bandpass 1-70Hz"];
+         notchreject[label="Notchreject 60Hz"]
+}
+
+ndata[label="Filtered Data",shape="box"];
+input -> bandpass;
+bandpass->notchreject
+notchreject->ndata
+ndata->eyeMovementRemover;
+eyeMovementRemover->sweatArtifactRemover;
+sweatArtifactRemover->electrodePoppingRemover;
+electrodePoppingRemover->ekgArtifactRemover;
+ekgArtifactRemover->ndata2
+ndata2[label="data after artifact removal",shape="box"];
+
+subgraph cluster_artifactRemover {
+         label="Artifact Remover";
+         eyeMovementRemover[label="Remove Eye Movement"];
+         sweatArtifactRemover[label="Remove Sweat Artifacts"];
+         electrodePoppingRemover[label="Remove Electrode Popping"];
+         ekgArtifactRemover[label="Remove EKG-linked \nperiodic elements"];
+}
+
+ndata2 -> waveletSpikeMethod;
+ndata2 ->nnetSpikeMethod ;
+ndata2 -> targetCorrelationMethod;
+ndata2 -> hardCodedRulesMethod;
+
+subgraph cluster_spikeDetection {
+         label="Spike Detection";
+         waveletSpikeMethod[label="CWT \n+ Amplitude Threshold"];
+
+         nnetSpikeMethod[label="Neural Network"];
+         targetCorrelationMethod[label="Targeted Correlation \nwith Sample Spike Kernels"];
+         hardCodedRulesMethod[label="Hardcoded Knowledge Rules"];
+         spikefuser[label="Probabilistic Spike Model\nMeta-Algorithmic Fuser"]; 
+}
+
+waveletSpikeMethod->spikefuser;
+nnetSpikeMethod->spikefuser;
+targetCorrelationMethod->spikefuser;
+hardCodedRulesMethod->spikefuser;
+
+spikeEstimates[label="Spike Estimates", shape="box"];
+spikefuser->spikeEstimates;
+
+}

@@ -13,3 +13,15 @@ Today Johnny, Michael, Utkarsh and I met with Dr Tarquinio.  We discussed plans 
 * 9/4/2015
 [Currell]
 Today Justin, Johnny, Utkarsh and I met in class.  We discussed splitting up duties over the weekend (spike detection and artifact removal).  Johnny looked into IEEG data and whether or not it is appropriately labeled (so far, no).  Utkarsh planned artifact reduction.  Justin installed MNE on his computer.  Currell worked with MNE-Python to try to import edf data and display it (not working yet.  there is some kind of error with "resizing arrays" I need to figure out).
+* 9/5/2015
+ [Currell]
+ Today Justin and I worked on the project.  We have a rudimentary system implemented in python for doing frequency filters and "spike detection," though the spike detection system is almost worthless.  
+
+My computer appears to have issues importing edf data correctly.  Will need to compare with someone else's results to determine the root of the problem.
+* 9/10/2015
+[Currell]
+Today Johnny, Utkarsh and I visited Dr Tarquinio at Egleston hospital.  Johnny and Utkarsh received much information on detecting artifacts, and I loaded ~10gb of data from Dr. Tarquinio onto Utkarsh's drive.
+* 9/11/2015
+[Currell]
+Today all team members met in class.  We primarily worked on the detailed design report.
+
