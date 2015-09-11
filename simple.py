@@ -1,6 +1,6 @@
 import matplotlib
 
-matplotlib.use('TkAgg')
+# matplotlib.use('TkAgg')
 #[CB 9/5/2015] Note the above line is basically for my windows setup.
 #everything is screwy in windows.  In mac or linux, you could probably remove it.
 import mne
@@ -120,8 +120,9 @@ def dostuff():
     data = mne.io.read_raw_edf("../EEGDATA/CAPSTONE_AB/BASHAREE_TEST.edf",preload=True)
     start, stop = data.time_as_index([100, 200])
     ldata, ltimes = data[2:8, start:stop]
-    spikesStructure = stupidIdentifySpikes(ldata, cutoff=0.0133)
+    spikesStructure = stupidIdentifySpikes(ldata, cutoff=0.0005)
     linSpikes = convertSpikesStructureToLinearForm(spikesStructure)
+    print linSpikes
     for arr in ldata:
         plt.plot(arr)
     for spike in linSpikes:
@@ -135,7 +136,7 @@ def convertSpikesStructureToLinearForm(spikesstructure):
     for arr in spikesstructure:
         for item in arr:
             spikeSet.add(item)
-    out = list(spikeSet)  
+    out = list(spikeSet)
     out.sort()
     return out
 
@@ -153,6 +154,7 @@ def stupidIdentifySpikes(data, spikekernellength=128, cutoff=0.0133):
         correlated = sp.signal.correlate(arr, thekernel)
         accumulator.append(correlated)
     accumulated = np.vstack(accumulator)
+
     #for arr in accumulated:
     #    plt.plot(arr)
     #plt.show()
@@ -163,11 +165,18 @@ def stupidIdentifySpikes(data, spikekernellength=128, cutoff=0.0133):
         for i2 in range(0, len(accumulated[i])):
             if(accumulated[i][i2]>=cutoff):
                 spikesout[i].append(i2)
+<<<<<<< HEAD
     return spikesout 
     
+=======
+    return spikesout
+
+
+
+>>>>>>> fd2a0485c593d3e69a01df69e58303ed75829403
 
 # def show_data(start_time, end_time, amplitude_adjust, lowpass ,highpass):
-    
+
 # t = np.arange(0, len(data))
 # ticklocs = []
 # ax = plt.subplot(212)
