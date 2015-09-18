@@ -165,15 +165,7 @@ def stupidIdentifySpikes(data, spikekernellength=128, cutoff=0.0133):
         for i2 in range(0, len(accumulated[i])):
             if(accumulated[i][i2]>=cutoff):
                 spikesout[i].append(i2)
-<<<<<<< HEAD
     return spikesout 
-    
-=======
-    return spikesout
-
-
-
->>>>>>> fd2a0485c593d3e69a01df69e58303ed75829403
 
 # def show_data(start_time, end_time, amplitude_adjust, lowpass ,highpass):
 
