@@ -45,9 +45,9 @@ class MainWindow(Tk.Frame):
         self.rawData = mne.io.read_raw_edf("../EEGDATA/CAPSTONE_AB/BASHAREE_TEST.edf",preload=True)
         self.startTime = Tk.DoubleVar(value=20.0)
         self.startTime.trace("w", lambda name, index, mode: self.updatePlot()) # http://www.astro.washington.edu/users/rowen/ROTKFolklore.html
-        self.endTime= Tk.DoubleVar(value=40.0)
+        self.endTime= Tk.DoubleVar(value=23.0)
         self.endTime.trace("w", lambda name, index, mode: self.updatePlot()) 
-        self.amplitudeAdjust = Tk.DoubleVar(value=2.0)
+        self.amplitudeAdjust = Tk.DoubleVar(value=1.0)
         self.amplitudeAdjust.trace("w", lambda name, index, mode: self.updatePlot()) 
         self.lowpass = Tk.DoubleVar(value=2.0)
         self.lowpass.trace("w", lambda name, index, mode: self.updatePlot())
@@ -67,7 +67,7 @@ class MainWindow(Tk.Frame):
         offset = 0
         for arr in self.displayData:
             a.plot(self.displayTimes,arr+offset)
-            offset=offset+0.02
+            offset=offset+0.0001
         self.fig.canvas.show()
         if (self.counter==0):
             self.fig.clear() 
@@ -150,11 +150,24 @@ class MainWindow(Tk.Frame):
         #CB this stuff should enable the "zooming" features and such if we can figure out how to reenable it.
         #toolbar = NavigationToolbar2TkAgg( canvas, self)
         #toolbar.update()
+        #canvas._tkcanvas.pack(side=Tk.TOP, fill=Tk.BOTH, expand=1)
         #canvas._tkcanvas.grid(row=1, column=1, columnspan=2, rowspan=4, padx=5, sticky=Tk.E+Tk.W+Tk.S+Tk.N)
 
         # area = Tk.Text(self)
         # area.grid(row=1, column=1, columnspan=2, rowspan=4, 
         #     padx=5, sticky=Tk.E+Tk.W+Tk.S+Tk.N)
+
+        #abtn = Tk.Button(self, text="Activate")
+        #abtn.grid(row=1, column=3)
+
+        #cbtn = Tk.Button(self, text="Close")
+        #cbtn.grid(row=2, column=3, pady=4)
+        
+        #hbtn = Tk.Button(self, text="Help")
+        #hbtn.grid(row=5, column=0, padx=5)
+
+        #obtn = Tk.Button(self, text="OK")
+        #obtn.grid(row=5, column=3)        
 
         self.grid_columnconfigure(0,weight=0)
         self.grid_columnconfigure(1,weight=0)
@@ -168,17 +181,6 @@ class MainWindow(Tk.Frame):
 
         self.updatePlot()
         
-        #abtn = Tk.Button(self, text="Activate")
-        #abtn.grid(row=1, column=3)
-
-        #cbtn = Tk.Button(self, text="Close")
-        #cbtn.grid(row=2, column=3, pady=4)
-        
-        #hbtn = Tk.Button(self, text="Help")
-        #hbtn.grid(row=5, column=0, padx=5)
-
-        #obtn = Tk.Button(self, text="OK")
-        #obtn.grid(row=5, column=3)        
               
 
 def main():
