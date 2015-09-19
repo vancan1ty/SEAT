@@ -165,7 +165,7 @@ def stupidIdentifySpikes(data, spikekernellength=128, cutoff=0.0133):
         for i2 in range(0, len(accumulated[i])):
             if(accumulated[i][i2]>=cutoff):
                 spikesout[i].append(i2)
-    return spikesout 
+    return spikesout
 
 data = mne.io.read_raw_edf("../EEGDATA/CAPSTONE_AB/BASHAREE_TEST.edf",preload=True)
 
@@ -181,6 +181,10 @@ def getDisplayData(realData, start_time, end_time, amplitude_adjust, lowpass, hi
     #linSpikes = convertSpikesStructureToLinearForm(spikesStructure)
     ldata2 = map(lambda x: amplitude_adjust*butter_bandpass_filter(x,lowpass,highpass,256), ldata)
     return (ldata2,ltimes)
+
+def getTotalTime():
+    return data.times
+
 
 # def show_data(start_time, end_time, amplitude_adjust, lowpass ,highpass):
 

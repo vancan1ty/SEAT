@@ -40,6 +40,7 @@ class MainWindow(Tk.Frame):
 
     def __init__(self, parent):
         Tk.Frame.__init__(self, parent)
+        self.totalTime = simple.getTotalTime()
         self.parent = parent
         self.counter = 0
         self.rawData = mne.io.read_raw_edf("../EEGDATA/CAPSTONE_AB/BASHAREE_TEST.edf",preload=True)
@@ -157,8 +158,8 @@ class MainWindow(Tk.Frame):
         canvas.get_tk_widget().grid(row=1, column=1, columnspan=8, rowspan=6, padx=5, sticky=Tk.E+Tk.W+Tk.S+Tk.N)
 
         #Todo - grab timeframe from data
-        self.xScrollbar = Tk.Scale(master=self,from_=0, to=20,orient=Tk.HORIZONTAL,resolution=0.05,variable=self.startTime)
-        self.xScrollbar.grid(row=1,column=1)
+        self.xScrollbar = Tk.Scale(master=self,from_=0, to=self.totalTime[-1], orient=Tk.HORIZONTAL, resolution=0.05, variable=self.startTime)
+        self.xScrollbar.grid(row=8, column=1, columnspan=8, sticky=Tk.W+Tk.E)
 
 
 
@@ -207,3 +208,19 @@ def main():
 
 if __name__ == '__main__':
     main()
+
+
+
+
+
+"""
+To-do:
+* add in vertical scrollbar
+* determine length of data and to give start and endtimes
+* figure out why you can't manually change endtimes
+--> keeps reseting in updatePlot because endTime gets
+    recoded to the startTime + timeFrame every time
+* remove whitespace around data figure
+--> this is a result of matplotlib trying to round data
+    indices while maintaining the time frame
+"""
