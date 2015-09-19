@@ -5,7 +5,7 @@
 #EEG display (only a few channels at a time), lowpass and highpass filters, amplitude adjustments, time selection.
 #simple menus, simple layout
 #note that on my computer the data doesn't look like on everyone else's, so I apoligize if the default parameters chose
-#(e.g. amplitude) are wrong. 
+#(e.g. amplitude) are wrong.
 #derived from various tutorials and sites around the web
 #http://effbot.org/tkinterbook/
 #http://infohost.nmt.edu/tcc/help/pubs/tkinter/web/index.html
@@ -33,32 +33,38 @@ def hello():
 def show_about_window():
     tkMessageBox.showinfo(
             "About Epilepsy Modeling",
-            "This amazing project\n\nwas created by:\nUtkarsh Garg\nJohnny Farrow\nJustin Jackson\nCurrell Berry\nMichael Long" 
-        )        
+            "This amazing project\n\nwas created by:\nUtkarsh Garg\nJohnny Farrow\nJustin Jackson\nCurrell Berry\nMichael Long"
+        )
 
 class MainWindow(Tk.Frame):
-  
+
     def __init__(self, parent):
-        Tk.Frame.__init__(self, parent)   
+        Tk.Frame.__init__(self, parent)
         self.parent = parent
         self.counter = 0
         self.rawData = mne.io.read_raw_edf("../EEGDATA/CAPSTONE_AB/BASHAREE_TEST.edf",preload=True)
         self.startTime = Tk.DoubleVar(value=20.0)
         self.startTime.trace("w", lambda name, index, mode: self.updatePlot()) # http://www.astro.washington.edu/users/rowen/ROTKFolklore.html
         self.endTime= Tk.DoubleVar(value=23.0)
-        self.endTime.trace("w", lambda name, index, mode: self.updatePlot()) 
+        self.endTime.trace("w", lambda name, index, mode: self.updatePlot())
         self.amplitudeAdjust = Tk.DoubleVar(value=1.0)
-        self.amplitudeAdjust.trace("w", lambda name, index, mode: self.updatePlot()) 
+        self.amplitudeAdjust.trace("w", lambda name, index, mode: self.updatePlot())
         self.lowpass = Tk.DoubleVar(value=2.0)
         self.lowpass.trace("w", lambda name, index, mode: self.updatePlot())
         self.highpass = Tk.DoubleVar(value=70.0)
         self.highpass.trace("w", lambda name, index, mode: self.updatePlot())
+
+        self.timeFrame = self.endTime.get() - self.startTime.get()
+
         self.initUI()
 
     def updatePlot(self):
         low = self.lowpass.get()
         hi = self.highpass.get()
         amp = self.amplitudeAdjust.get()
+        start = self.startTime.get()
+        end = self.startTime.get() + self.timeFrame
+        self.endTime.set(self.startTime.get() + self.timeFrame)
         print("updating plot: lowpass: {low}, highpass: {hi}, amplitude: {amp}".format(low=low, hi=hi, amp=amp))
         self.displayData,self.displayTimes= simple.getDisplayData(self.rawData,self.startTime.get(),self.endTime.get(),amp,low,hi)
         self.fig.clear()
@@ -70,7 +76,7 @@ class MainWindow(Tk.Frame):
             offset=offset+0.0001
         self.fig.canvas.show()
         if (self.counter==0):
-            self.fig.clear() 
+            self.fig.clear()
             self.counter = self.counter + 1
 
     def initUI(self):
@@ -143,9 +149,19 @@ class MainWindow(Tk.Frame):
         #    a.plot(self.times,arr+offset)
         #    offset=offset+0.02
 
+
+
+
         canvas = FigureCanvasTkAgg(self.fig, master=self)
         canvas.show()
         canvas.get_tk_widget().grid(row=1, column=1, columnspan=8, rowspan=6, padx=5, sticky=Tk.E+Tk.W+Tk.S+Tk.N)
+
+        #Todo - grab timeframe from data
+        self.xScrollbar = Tk.Scale(master=self,from_=0, to=20,orient=Tk.HORIZONTAL,resolution=0.05,variable=self.startTime)
+        self.xScrollbar.grid(row=1,column=1)
+
+
+
 
         #CB this stuff should enable the "zooming" features and such if we can figure out how to reenable it.
         #toolbar = NavigationToolbar2TkAgg( canvas, self)
@@ -154,7 +170,7 @@ class MainWindow(Tk.Frame):
         #canvas._tkcanvas.grid(row=1, column=1, columnspan=2, rowspan=4, padx=5, sticky=Tk.E+Tk.W+Tk.S+Tk.N)
 
         # area = Tk.Text(self)
-        # area.grid(row=1, column=1, columnspan=2, rowspan=4, 
+        # area.grid(row=1, column=1, columnspan=2, rowspan=4,
         #     padx=5, sticky=Tk.E+Tk.W+Tk.S+Tk.N)
 
         #abtn = Tk.Button(self, text="Activate")
@@ -162,12 +178,12 @@ class MainWindow(Tk.Frame):
 
         #cbtn = Tk.Button(self, text="Close")
         #cbtn.grid(row=2, column=3, pady=4)
-        
+
         #hbtn = Tk.Button(self, text="Help")
         #hbtn.grid(row=5, column=0, padx=5)
 
         #obtn = Tk.Button(self, text="OK")
-        #obtn.grid(row=5, column=3)        
+        #obtn.grid(row=5, column=3)
 
         self.grid_columnconfigure(0,weight=0)
         self.grid_columnconfigure(1,weight=0)
@@ -180,16 +196,14 @@ class MainWindow(Tk.Frame):
         self.grid_rowconfigure(3,weight=5)
 
         self.updatePlot()
-        
-              
+
+
 
 def main():
     root = Tk.Tk()
     root.geometry("800x600+0+0")
     app = MainWindow(root)
-    root.mainloop()  
+    root.mainloop()
 
 if __name__ == '__main__':
-    main()  
-
-main()
+    main()
