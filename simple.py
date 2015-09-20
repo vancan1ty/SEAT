@@ -219,3 +219,50 @@ def getTotalTime():
 # ax.set_yticklabels(['PG3', 'PG5', 'PG7', 'PG9'])
 
 # xlabel('time (s)')
+
+
+import re
+# reads annotation data from disk to and creates tuples of the data
+# returns list of (time, duration, title) 
+#  time is (hour, minute, second)
+def load_raw_annotations(rawAnnotationsPath):
+    myfile = open(rawAnnotationsPath, 'r')
+    startFound = False
+    annotations = []
+    for line in myfile:
+        if not startFound:
+            if re.match('\s*Time\s+Duration\s+Title', line) != None:
+                startFound = True
+        else:
+            #note this assumes there is no duration in the file
+            matches = re.match('(\d*):(\d*):(\d*)  \t\t(.*)', line)
+            #print matches.groups()
+            entry = ((int(matches.group(1)),int(matches.group(2)),int(matches.group(3))), None , matches.group(4))
+            annotations.append(entry)
+    myfile.close()
+    return annotations
+
+# truth is (time,duration,title)
+# predictions is [time]
+#  time is (hour, minute, second)
+# returns (truePositives, falsePositives, falseNegatives)
+def score_predictions(truth, predictions):
+    spikeList = [] #tuple of (time, duration)
+    for time,duration,title in truth:
+        if title == 'spike':
+            if duration is None: duration = (0,0,1)
+            spikeList.append((time, duration))
+    numSpikes = len(spikeList)
+    numPredictions = len(predictions)
+    numCorrect = 0
+    for (spikehr,spikemin,spikesec),spikedur in spikeList:
+        spiketime = (spikehr * 3600) + (spikemin * 60) + spikesec
+        found = False
+        for pred in predictions:
+            predtime = (pred[0] * 3600) + (pred[1] * 60) + pred[2]
+            if (spiketime+spikedur >= predtime and spiketime-spikedur <= predtime):
+                found = True
+                break
+        if found:
+            numCorrect += 1
+    return (numCorrect, numPredictions - numCorrect, numSpikes - numCorrect)
