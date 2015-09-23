@@ -86,7 +86,7 @@ class MainWindow(Tk.Frame):
         self.displayData,self.displayTimes= simple.getDisplayData(self.rawData,self.startTime.get(),self.endTime.get(),amp,low,hi)
         self.fig.clear()
         a = self.fig.add_subplot(111)
-
+        a.set_xlim([start, end])
         offset = 0
         for arr in self.displayData:
             a.plot(self.displayTimes,arr+offset)
