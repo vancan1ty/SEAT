@@ -40,14 +40,16 @@ class MainWindow(Tk.Frame):
 
     def __init__(self, parent):
         Tk.Frame.__init__(self, parent)
-        self.totalTime = simple.getTotalTime()
         self.parent = parent
         self.counter = 0
         self.rawData = mne.io.read_raw_edf("../EEGDATA/CAPSTONE_AB/BASHAREE_TEST.edf",preload=True)
+        self.totalTime = self.rawData.times
         self.startTime = Tk.DoubleVar(value=20.0)
         self.startTime.trace("w", lambda name, index, mode: self.updatePlot()) # http://www.astro.washington.edu/users/rowen/ROTKFolklore.html
         self.endTime= Tk.DoubleVar(value=23.0)
         self.endTime.trace("w", lambda name, index, mode: self.updatePlot())
+        self.middleTime= Tk.DoubleVar(value=21.5)
+        self.middleTime.trace("w", lambda name, index, mode: self.scrollPlot())
         self.amplitudeAdjust = Tk.DoubleVar(value=1.0)
         self.amplitudeAdjust.trace("w", lambda name, index, mode: self.updatePlot())
         self.lowpass = Tk.DoubleVar(value=2.0)
@@ -59,13 +61,27 @@ class MainWindow(Tk.Frame):
 
         self.initUI()
 
+
+    def scrollPlot(self):
+        oldStart = self.startTime.get()
+        oldEnd= self.endTime.get()
+        timeDiffHalf = (oldEnd-oldStart)/2.0
+        midTime = self.middleTime.get()
+        newStart = midTime-timeDiffHalf
+        newEnd = midTime+timeDiffHalf
+        if(newStart != oldStart or newEnd != oldEnd):
+            self.startTime.set(midTime-timeDiffHalf)
+            self.endTime.set(midTime+timeDiffHalf)
+            #variable update should trigger updatePlot when necessary
+
     def updatePlot(self):
         low = self.lowpass.get()
         hi = self.highpass.get()
         amp = self.amplitudeAdjust.get()
         start = self.startTime.get()
-        end = self.startTime.get() + self.timeFrame
-        self.endTime.set(self.startTime.get() + self.timeFrame)
+        end = self.endTime.get()
+        #if(self.middleTime != (end-start)/2.0):
+        #    self.middleTime.set((end-start)/2.0)
         print("updating plot: lowpass: {low}, highpass: {hi}, amplitude: {amp}".format(low=low, hi=hi, amp=amp))
         self.displayData,self.displayTimes= simple.getDisplayData(self.rawData,self.startTime.get(),self.endTime.get(),amp,low,hi)
         self.fig.clear()
@@ -151,17 +167,13 @@ class MainWindow(Tk.Frame):
         #    offset=offset+0.02
 
 
-
-
         canvas = FigureCanvasTkAgg(self.fig, master=self)
         canvas.show()
         canvas.get_tk_widget().grid(row=1, column=1, columnspan=8, rowspan=6, padx=5, sticky=Tk.E+Tk.W+Tk.S+Tk.N)
 
         #Todo - grab timeframe from data
-        self.xScrollbar = Tk.Scale(master=self,from_=0, to=self.totalTime[-1], orient=Tk.HORIZONTAL, resolution=0.05, variable=self.startTime)
+        self.xScrollbar = Tk.Scale(master=self,from_=0, to=self.totalTime[-1], orient=Tk.HORIZONTAL, resolution=0.05, variable=self.middleTime)
         self.xScrollbar.grid(row=8, column=1, columnspan=8, sticky=Tk.W+Tk.E)
-
-
 
 
         #CB this stuff should enable the "zooming" features and such if we can figure out how to reenable it.

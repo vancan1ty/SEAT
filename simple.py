@@ -9,6 +9,7 @@ import numpy as np
 import scipy as sp
 from scipy.signal import butter, lfilter, freqz
 from PIL import Image
+import re
 
 #below is filter stuff
 #derived from http://stackoverflow.com/questions/25191620/creating-lowpass-filter-in-scipy-understanding-methods-and-units
@@ -167,7 +168,6 @@ def stupidIdentifySpikes(data, spikekernellength=128, cutoff=0.0133):
                 spikesout[i].append(i2)
     return spikesout
 
-data = mne.io.read_raw_edf("../EEGDATA/CAPSTONE_AB/BASHAREE_TEST.edf",preload=True)
 
 def amplitude_adjust_data(dataSeries, amplitudeFactor):
     out = map(lambda x: x*amplitudeFactor, dataSeries)
@@ -176,15 +176,11 @@ def getDisplayData(realData, start_time, end_time, amplitude_adjust, lowpass, hi
     """given some real EEG data, getDisplayData processes it in a way that is useful for display
       purposes and returns the results"""
     start, stop = realData.time_as_index([start_time, end_time])
-    ldata, ltimes = data[2:8, start:stop] #[CB 9/18/2015] for now we do 2:8 as a stopgap hack till we have vertical scrolling.
+    ldata, ltimes = realData[2:8, start:stop] #[CB 9/18/2015] for now we do 2:8 as a stopgap hack till we have vertical scrolling.
     #spikesStructure = stupidIdentifySpikes(ldata, cutoff=0.0005)
     #linSpikes = convertSpikesStructureToLinearForm(spikesStructure)
     ldata2 = map(lambda x: amplitude_adjust*butter_bandpass_filter(x,lowpass,highpass,256), ldata)
     return (ldata2,ltimes)
-
-def getTotalTime():
-    return data.times
-
 
 # def show_data(start_time, end_time, amplitude_adjust, lowpass ,highpass):
 
@@ -220,11 +216,10 @@ def getTotalTime():
 
 # xlabel('time (s)')
 
-
-import re
 # reads annotation data from disk to and creates tuples of the data
 # returns list of (time, duration, title) 
 #  time is (hour, minute, second)
+
 def load_raw_annotations(rawAnnotationsPath):
     myfile = open(rawAnnotationsPath, 'r')
     startFound = False
@@ -266,3 +261,5 @@ def score_predictions(truth, predictions):
         if found:
             numCorrect += 1
     return (numCorrect, numPredictions - numCorrect, numSpikes - numCorrect)
+
+#data = mne.io.read_raw_edf("../EEGDATA/CAPSTONE_AB/BASHAREE_TEST.edf",preload=True)
