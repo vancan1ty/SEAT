@@ -4,6 +4,8 @@
 import sys
 from PyQt4 import QtGui
 from PyQt4 import QtCore
+import signalsdemo2
+
 
 def show_about_window():
     QtGui.QMessageBox.information(None,"About Epilepsy Modeling","This amazing project\n\nwas created by:\nUtkarsh Garg\nJohnny Farrow\nJustin Jackson\nCurrell Berry\nMichael Long")
@@ -92,8 +94,8 @@ class Example(QtGui.QMainWindow):
         slider = QtGui.QSlider(QtCore.Qt.Vertical,holderWidget)
         grid.addWidget(slider, 2, 0)
 
-        bigEdit = QtGui.QTextEdit()
-        grid.addWidget(bigEdit, 1, 1, 6, 9)
+        c = signalsdemo2.Canvas()
+        grid.addWidget(c.native, 1, 1, 6, 9)
         
         holderWidget.setLayout(grid) 
 
