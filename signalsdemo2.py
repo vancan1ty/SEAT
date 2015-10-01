@@ -30,7 +30,8 @@ m = nrows*ncols
 n = len(displayData[1])
 
 # Various signal amplitudes.
-amplitudes = .1 + .2 * np.random.rand(m, 1).astype(np.float32)
+#amplitudes = .1 + .2 * np.random.rand(m, 1).astype(np.float32)
+amplitudes = 1*np.ones((m,1),dtype=np.float32)
 
 # Generate the signals as a (m, n) array.
 #y = amplitudes * np.random.randn(m, n).astype(np.float32)
@@ -123,7 +124,7 @@ void main() {
 
 class Canvas(app.Canvas):
     def __init__(self):
-        app.Canvas.__init__(self, title='Use your wheel to zoom!',
+        app.Canvas.__init__(self, title='Use your wheel to scroll!',
                             keys='interactive')
         self.program = gloo.Program(VERT_SHADER, FRAG_SHADER)
         self.program['a_position'] = y.reshape(-1, 1)
@@ -132,6 +133,8 @@ class Canvas(app.Canvas):
         self.program['u_scale'] = (1., 1.)
         self.program['u_size'] = (nrows, ncols)
         self.program['u_n'] = n
+        self.startTime = 20.0
+        self.endTime = 30.0
 
         gloo.set_viewport(0, 0, *self.physical_size)
 
@@ -145,14 +148,24 @@ class Canvas(app.Canvas):
     def on_resize(self, event):
         gloo.set_viewport(0, 0, *event.physical_size)
 
+    # def on_mouse_wheel(self, event):
+    #     dx = np.sign(event.delta[1]) * .05
+    #     scale_x, scale_y = self.program['u_scale']
+    #     #print("scale_x: {scale_x}, scale_y: {scale_y}".format(scale_x=scale_x, scale_y=scale_y))
+    #     scale_x_new, scale_y_new = (scale_x * math.exp(2.5*dx),
+    #                                 scale_y * math.exp(0.0*dx))
+    #     self.program['u_scale'] = (max(1, scale_x_new), max(1, scale_y_new))
+    #     self.update()
+
     def on_mouse_wheel(self, event):
-        dx = np.sign(event.delta[1]) * .05
-        scale_x, scale_y = self.program['u_scale']
-        #print("scale_x: {scale_x}, scale_y: {scale_y}".format(scale_x=scale_x, scale_y=scale_y))
-        scale_x_new, scale_y_new = (scale_x * math.exp(2.5*dx),
-                                    scale_y * math.exp(0.0*dx))
-        self.program['u_scale'] = (max(1, scale_x_new), max(1, scale_y_new))
+        dx = np.sign(event.delta[1]) 
+        self.startTime += dx
+        self.endTime += dx
+        displayData = simple.getDisplayData(rawData, self.startTime, self.endTime, 1, 2.0, 70.0)
+        y = np.float32(10000*np.array(displayData[0]))
+        self.program['a_position'] = y.reshape(-1, 1)
         self.update()
+
 
     # def on_timer(self, event):
     #     """Add some data at the end of each signal (real-time signals)."""
@@ -171,6 +184,6 @@ if __name__ == '__main__':
     c = Canvas()
     app.run()
 
-c = Canvas()
-app.run()
+#c = Canvas()
+#app.run()
 

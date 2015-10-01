@@ -176,9 +176,10 @@ def getDisplayData(realData, start_time, end_time, amplitude_adjust, lowpass, hi
     """given some real EEG data, getDisplayData processes it in a way that is useful for display
       purposes and returns the results"""
     start, stop = realData.time_as_index([start_time, end_time])
-    ldata, ltimes = realData[2:8, start:stop] #[CB 9/18/2015] for now we do 2:8 as a stopgap hack till we have vertical scrolling.
+    ldata, ltimes = realData[:, start:stop] #[CB 9/18/2015] for now we do 2:8 as a stopgap hack till we have vertical scrolling.
     #spikesStructure = stupidIdentifySpikes(ldata, cutoff=0.0005)
     #linSpikes = convertSpikesStructureToLinearForm(spikesStructure)
+    #avgdata = np.average(np.array(ldata),0)
     ldata2 = map(lambda x: amplitude_adjust*butter_bandpass_filter(x,lowpass,highpass,256), ldata)
     return (ldata2,ltimes)
 
