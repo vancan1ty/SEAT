@@ -28,24 +28,24 @@ class Example(QtGui.QMainWindow):
         fileMenu = menubar.addMenu('&File')
         fileMenu.addAction(exitAction)
 
-        cutAction = QtGui.QAction( '&Cut', self)
-        copyAction = QtGui.QAction( '&Copy', self)
-        pasteAction = QtGui.QAction( '&Paste', self)
+        cutAction = QtGui.QAction('&Cut', self)
+        copyAction = QtGui.QAction('&Copy', self)
+        pasteAction = QtGui.QAction('&Paste', self)
         editMenu = menubar.addMenu('&Edit')
         editMenu.addAction(cutAction)
         editMenu.addAction(copyAction)
         editMenu.addAction(pasteAction)
 
-        showToolbarAction = QtGui.QAction( '&Show Toolbar?', self)
-        showEBAction = QtGui.QAction( '&Show Events Browser?', self)
+        showToolbarAction = QtGui.QAction('&Show Toolbar?', self)
+        showEBAction = QtGui.QAction('&Show Events Browser?', self)
 
         viewMenu = menubar.addMenu('&View')
         viewMenu.addAction(showToolbarAction)
         viewMenu.addAction(showEBAction)
 
-        rcAction = QtGui.QAction( '&Raw Channels', self)
-        avgAction = QtGui.QAction( '&Channels vs Avg', self)
-        bananaAction = QtGui.QAction( '&Banana View', self)
+        rcAction = QtGui.QAction('&Raw Channels', self)
+        avgAction = QtGui.QAction('&Channels vs Avg', self)
+        bananaAction = QtGui.QAction('&Banana View', self)
         montageSelect = viewMenu.addMenu("&Select View")
         montageSelect.addAction(rcAction)
         montageSelect.addAction(avgAction)
@@ -55,6 +55,7 @@ class Example(QtGui.QMainWindow):
         aboutAction = QtGui.QAction('&About', self)        
         aboutAction.triggered.connect(show_about_window)
         helpMenu.addAction(aboutAction)
+
 
     def initUI(self):
         #create gui widgets, top to bottom, little to big.
@@ -90,13 +91,21 @@ class Example(QtGui.QMainWindow):
         grid.addWidget(endEdit, 0, 7)
 
         sliderLabel = QtGui.QLabel('Amplitude')
-        grid.addWidget(sliderLabel, 1, 0)
-        slider = QtGui.QSlider(QtCore.Qt.Vertical,holderWidget)
-        grid.addWidget(slider, 2, 0)
+        self.sliderValue = QtGui.QLabel()
 
-        c = signalsdemo2.Canvas()
-        grid.addWidget(c.native, 1, 1, 6, 9)
-        
+        grid.addWidget(sliderLabel, 1, 0)
+        grid.addWidget(self.sliderValue, 2, 0)
+        slider = QtGui.QSlider(QtCore.Qt.Vertical,holderWidget)
+        slider.setRange(0,100) #qslider does ints, so we divide by ten to get floats
+        grid.addWidget(slider, 3, 0)
+
+        self.canvas = signalsdemo2.Canvas()
+        #scroller = QtGui.QScrollArea();
+        #scroller.setWidget(c.native)
+        grid.addWidget(self.canvas.native, 1, 1, 6, 9)
+
+        QtCore.QObject.connect(slider, QtCore.SIGNAL('valueChanged(int)'), self.onUpdateSliderValue)
+
         holderWidget.setLayout(grid) 
 
         self.setCentralWidget(holderWidget)
@@ -105,9 +114,14 @@ class Example(QtGui.QMainWindow):
 
         self.setWindowTitle('Epilepsy Modeling')    
         self.show()
+
+    def onUpdateSliderValue(self, value):
+        rValue = value/10.0
+        self.sliderValue.setText(str(rValue))
+        self.canvas.onAmplitudeChanged(rValue)
+        
         
 def main():
-    
     app = QtGui.QApplication(sys.argv)
     ex = Example()
     sys.exit(app.exec_())

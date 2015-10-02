@@ -135,6 +135,7 @@ class Canvas(app.Canvas):
         self.program['u_n'] = n
         self.startTime = 20.0
         self.endTime = 30.0
+        self.storedAmplitude = 1.0;
 
         gloo.set_viewport(0, 0, *self.physical_size)
 
@@ -161,7 +162,14 @@ class Canvas(app.Canvas):
         dx = np.sign(event.delta[1]) 
         self.startTime += dx
         self.endTime += dx
-        displayData = simple.getDisplayData(rawData, self.startTime, self.endTime, 1, 2.0, 70.0)
+        displayData = simple.getDisplayData(rawData, self.startTime, self.endTime, self.storedAmplitude, 2.0, 70.0)
+        y = np.float32(10000*np.array(displayData[0]))
+        self.program['a_position'] = y.reshape(-1, 1)
+        self.update()
+
+    def onAmplitudeChanged(self, nAmplitude):
+        self.storedAmplitude = nAmplitude;
+        displayData = simple.getDisplayData(rawData, self.startTime, self.endTime, self.storedAmplitude, 2.0, 70.0)
         y = np.float32(10000*np.array(displayData[0]))
         self.program['a_position'] = y.reshape(-1, 1)
         self.update()
