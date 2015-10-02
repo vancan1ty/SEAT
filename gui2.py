@@ -91,10 +91,10 @@ class Example(QtGui.QMainWindow):
         grid.addWidget(endEdit, 0, 7)
 
         sliderLabel = QtGui.QLabel('Amplitude')
-        self.sliderValue = QtGui.QLabel()
-
         grid.addWidget(sliderLabel, 1, 0)
+        self.sliderValue = QtGui.QLabel()
         grid.addWidget(self.sliderValue, 2, 0)
+
         slider = QtGui.QSlider(QtCore.Qt.Vertical,holderWidget)
         slider.setRange(0,100) #qslider does ints, so we divide by ten to get floats
         grid.addWidget(slider, 3, 0)
@@ -105,6 +105,7 @@ class Example(QtGui.QMainWindow):
         grid.addWidget(self.canvas.native, 1, 1, 6, 9)
 
         QtCore.QObject.connect(slider, QtCore.SIGNAL('valueChanged(int)'), self.onUpdateSliderValue)
+        slider.setValue(self.canvas.storedAmplitude*10)
 
         holderWidget.setLayout(grid) 
 
