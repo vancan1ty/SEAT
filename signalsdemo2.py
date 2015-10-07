@@ -140,8 +140,8 @@ class Canvas(app.Canvas):
         self.endEdit = endEdit
         self.lowEdit = lowEdit
         self.highEdit = highEdit
-        displayData = simple.getDisplayData(rawData, self.startTime, self.endTime, self.storedAmplitude, self.lowPass, self.highPass)
-        setupZoom(displayData)
+        self.displayData = simple.getDisplayData(rawData, self.startTime, self.endTime, self.storedAmplitude, self.lowPass, self.highPass)
+        setupZoom(self.displayData)
         self.program = gloo.Program(VERT_SHADER, FRAG_SHADER)
         self.setupZoomStep2()
         gloo.set_viewport(0, 0, *self.physical_size)
@@ -174,21 +174,27 @@ class Canvas(app.Canvas):
     #                                 scale_y * math.exp(0.0*dx))
     #     self.program['u_scale'] = (max(1, scale_x_new), max(1, scale_y_new))
     #     self.update()
-
     def on_mouse_wheel(self, event):
         dx = np.sign(event.delta[1]) 
-        self.startTime += dx
-        self.endTime += dx
-        displayData = simple.getDisplayData(rawData, self.startTime, self.endTime, self.storedAmplitude, self.lowPass, self.highPass)
-        y = np.float32(10000*np.array(displayData[0]))
+        if((self.startTime + dx) > 0.5):
+            self.startTime += dx
+            self.endTime += dx
+        elif ((self.startTime+dx) >= 0.0): #CB handle edge cases as we get close to beginning of dataset
+            self.startTime += dx
+            self.endTime += dx
+        olen=len(self.displayData[0][0])
+        self.displayData = simple.getDisplayData(rawData, self.startTime, self.endTime, self.storedAmplitude, self.lowPass, self.highPass)
+        if(len(self.displayData[0][0]) != olen):
+            self.onStartEndChanged(self.startTime,self.endTime)
+        y = np.float32(10000*np.array(self.displayData[0]))
         self.program['a_position'] = y.reshape(-1, 1)
         self.updateTextBoxes()
         self.update()
 
     def onAmplitudeChanged(self, nAmplitude):
         self.storedAmplitude = nAmplitude;
-        displayData = simple.getDisplayData(rawData, self.startTime, self.endTime, self.storedAmplitude, self.lowPass, self.highPass)
-        y = np.float32(10000*np.array(displayData[0]))
+        self.displayData = simple.getDisplayData(rawData, self.startTime, self.endTime, self.storedAmplitude, self.lowPass, self.highPass)
+        y = np.float32(10000*np.array(self.displayData[0]))
         self.program['a_position'] = y.reshape(-1, 1)
         self.update()
 
@@ -196,16 +202,16 @@ class Canvas(app.Canvas):
         self.lowPass = lowPass;
         self.highPass = highPass;
         print "startTime: {s}, endTime: {e}, lowPass: {l}, highPass: {h}".format(s=self.startTime, e=self.endTime, l=self.lowPass, h=self.highPass)
-        displayData = simple.getDisplayData(rawData, self.startTime, self.endTime, self.storedAmplitude, self.lowPass, self.highPass)
-        y = np.float32(10000*np.array(displayData[0]))
+        self.displayData = simple.getDisplayData(rawData, self.startTime, self.endTime, self.storedAmplitude, self.lowPass, self.highPass)
+        y = np.float32(10000*np.array(self.displayData[0]))
         self.program['a_position'] = y.reshape(-1, 1)
         self.update()
 
     def onStartEndChanged(self, startTime, endTime):
         self.startTime = startTime;
         self.endTime = endTime;
-        displayData = simple.getDisplayData(rawData, self.startTime, self.endTime, self.storedAmplitude, self.lowPass, self.highPass)
-        setupZoom(displayData)
+        self.displayData = simple.getDisplayData(rawData, self.startTime, self.endTime, self.storedAmplitude, self.lowPass, self.highPass)
+        setupZoom(self.displayData)
         # self.program.delete()
         # self.program = gloo.Program(VERT_SHADER, FRAG_SHADER)
         self.setupZoomStep2()
