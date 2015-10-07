@@ -16,7 +16,10 @@ import mne
 import simple
 from PyQt4 import QtCore
 
-rawData = mne.io.read_raw_edf("../EEGDATA/CAPSTONE_AB/BASHAREE_TEST.edf",preload=True)
+def loadData():
+    global rawData,dSetName
+    dSetName = "BASHAREE_TEST"
+    rawData = mne.io.read_raw_edf("../EEGDATA/CAPSTONE_AB/BASHAREE_TEST.edf",preload=True)
 
 def setupZoom(displayData):
     """ this function should be called whenever a "zoom" operation is performed""" 

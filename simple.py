@@ -172,11 +172,11 @@ def stupidIdentifySpikes(data, spikekernellength=128, cutoff=0.0133):
 def amplitude_adjust_data(dataSeries, amplitudeFactor):
     out = map(lambda x: x*amplitudeFactor, dataSeries)
 
-def getDisplayData(realData, start_time, end_time, amplitude_adjust, lowpass, highpass):
+def getDisplayData(realData, start_time, end_time, amplitude_adjust, lowpass, highpass, channels=range(1,15)):
     """given some real EEG data, getDisplayData processes it in a way that is useful for display
       purposes and returns the results"""
     start, stop = realData.time_as_index([start_time, end_time])
-    ldata, ltimes = realData[:, start:stop] #[CB 9/18/2015] for now we do 2:8 as a stopgap hack till we have vertical scrolling.
+    ldata, ltimes = realData[channels, start:stop]
     #spikesStructure = stupidIdentifySpikes(ldata, cutoff=0.0005)
     #linSpikes = convertSpikesStructureToLinearForm(spikesStructure)
     #avgdata = np.average(np.array(ldata),0)

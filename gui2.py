@@ -6,6 +6,7 @@ from PyQt4 import QtGui
 from PyQt4 import QtCore
 import signalsdemo2
 
+SAMPLING_RATE=256
 
 def show_about_window():
     QtGui.QMessageBox.information(None,"About Epilepsy Modeling","This amazing project\n\nwas created by:\nUtkarsh Garg\nJohnny Farrow\nJustin Jackson\nCurrell Berry\nMichael Long")
@@ -14,11 +15,11 @@ class Example(QtGui.QMainWindow):
     
     def __init__(self):
         super(Example, self).__init__()
-        
+        signalsdemo2.loadData()
         self.initUI()
 
     def setupMenus(self):
-
+        """set up menubar menus"""
         exitAction = QtGui.QAction(QtGui.QIcon('exit.png'), '&Exit', self)        
         exitAction.setShortcut('Ctrl+Q')
         exitAction.setStatusTip('Exit application')
@@ -56,10 +57,8 @@ class Example(QtGui.QMainWindow):
         aboutAction.triggered.connect(show_about_window)
         helpMenu.addAction(aboutAction)
 
-
     def initUI(self):
-        #create gui widgets, top to bottom, little to big.
-
+        """create the various UI elements"""
         #create pulldown menus 
         self.setupMenus()
 
@@ -70,28 +69,31 @@ class Example(QtGui.QMainWindow):
         grid.setSpacing(10)
         grid.setColumnStretch(8,1)
 
-        validator = QtGui.QDoubleValidator(0.0,128.0,10)
+        freqValidator = QtGui.QDoubleValidator(0.0,128.0,10)
+        timeValidator = QtGui.QDoubleValidator(0.0, signalsdemo2.rawData.times[-1], 10)
 
         lowLbl = QtGui.QLabel('Lowpass (hz)')
         grid.addWidget(lowLbl, 0, 0)
         self.lowEdit = QtGui.QLineEdit("2.0")
-        self.lowEdit.setValidator(validator)
+        self.lowEdit.setValidator(freqValidator)
         grid.addWidget(self.lowEdit, 0, 1)
 
         highLbl = QtGui.QLabel('Highpass (hz)')
         grid.addWidget(highLbl, 0, 2)
         self.highEdit = QtGui.QLineEdit("70.0")
-        self.highEdit.setValidator(validator)
+        self.highEdit.setValidator(freqValidator)
         grid.addWidget(self.highEdit, 0, 3)
 
         startLbl = QtGui.QLabel('Start Time')
         grid.addWidget(startLbl, 0, 4)
         self.startEdit = QtGui.QLineEdit("20.0")
+        self.startEdit.setValidator(timeValidator)
         grid.addWidget(self.startEdit, 0, 5)
 
         endLbl = QtGui.QLabel('End Time')
         grid.addWidget(endLbl, 0, 6)
         self.endEdit = QtGui.QLineEdit("30.0")
+        self.endEdit.setValidator(timeValidator)
         grid.addWidget(self.endEdit, 0, 7)
 
         sliderLabel = QtGui.QLabel('Amplitude')
@@ -119,7 +121,7 @@ class Example(QtGui.QMainWindow):
         holderWidget.setLayout(grid) 
 
         self.setCentralWidget(holderWidget)
-        self.statusBar().showMessage('Ready')
+        self.statusBar().showMessage(signalsdemo2.dSetName + ".   " + str(signalsdemo2.rawData.times[-1]) + " seconds.")
         self.setGeometry(300, 300, 350, 300)
 
         self.setWindowTitle('Epilepsy Modeling')    
