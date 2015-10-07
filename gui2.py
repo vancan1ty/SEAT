@@ -7,6 +7,8 @@ from PyQt4 import QtCore
 import signalsdemo2
 
 SAMPLING_RATE=256
+START_TIME = 0.0
+END_TIME = 6.0
 
 def show_about_window():
     QtGui.QMessageBox.information(None,"About Epilepsy Modeling","This amazing project\n\nwas created by:\nUtkarsh Garg\nJohnny Farrow\nJustin Jackson\nCurrell Berry\nMichael Long")
@@ -86,13 +88,13 @@ class Example(QtGui.QMainWindow):
 
         startLbl = QtGui.QLabel('Start Time')
         grid.addWidget(startLbl, 0, 4)
-        self.startEdit = QtGui.QLineEdit("20.0")
+        self.startEdit = QtGui.QLineEdit(str(START_TIME))
         self.startEdit.setValidator(timeValidator)
         grid.addWidget(self.startEdit, 0, 5)
 
         endLbl = QtGui.QLabel('End Time')
         grid.addWidget(endLbl, 0, 6)
-        self.endEdit = QtGui.QLineEdit("30.0")
+        self.endEdit = QtGui.QLineEdit(str(END_TIME))
         self.endEdit.setValidator(timeValidator)
         grid.addWidget(self.endEdit, 0, 7)
 

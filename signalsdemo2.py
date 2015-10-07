@@ -16,6 +16,10 @@ import mne
 import simple
 from PyQt4 import QtCore
 
+SAMPLING_RATE=256
+START_TIME = 0.0
+END_TIME = 6.0
+
 def loadData():
     global rawData,dSetName
     dSetName = "BASHAREE_TEST"
@@ -131,15 +135,15 @@ class Canvas(app.Canvas):
     def __init__(self, startEdit, endEdit, lowEdit, highEdit):
         app.Canvas.__init__(self, title='Use your wheel to scroll!',
                             keys='interactive')
-        self.startTime = 30.0
-        self.endTime = 34.0
-        self.storedAmplitude = 1.0
-        self.lowPass = 2.0
-        self.highPass = 70.0
         self.startEdit = startEdit
         self.endEdit = endEdit
         self.lowEdit = lowEdit
         self.highEdit = highEdit
+        self.startTime = START_TIME
+        self.endTime = END_TIME
+        self.storedAmplitude = 1.0
+        self.lowPass = 2.0
+        self.highPass = 70.0
         self.displayData = simple.getDisplayData(rawData, self.startTime, self.endTime, self.storedAmplitude, self.lowPass, self.highPass)
         setupZoom(self.displayData)
         self.program = gloo.Program(VERT_SHADER, FRAG_SHADER)
