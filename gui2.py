@@ -109,8 +109,8 @@ class Example(QtGui.QMainWindow):
         grid.addWidget(self.canvas.native, 1, 1, 6, 9)
 
         QtCore.QObject.connect(slider, QtCore.SIGNAL('valueChanged(int)'), self.onUpdateSliderValue)
-        QtCore.QObject.connect(self.startEdit, QtCore.SIGNAL('editingFinished()'), self.onUpdateTextBoxes)
-        QtCore.QObject.connect(self.endEdit, QtCore.SIGNAL('editingFinished()'), self.onUpdateTextBoxes)
+        QtCore.QObject.connect(self.startEdit, QtCore.SIGNAL('editingFinished()'), self.onStartEndChanged)
+        QtCore.QObject.connect(self.endEdit, QtCore.SIGNAL('editingFinished()'), self.onStartEndChanged)
         QtCore.QObject.connect(self.lowEdit, QtCore.SIGNAL('editingFinished()'), self.onUpdateTextBoxes)
         QtCore.QObject.connect(self.highEdit, QtCore.SIGNAL('editingFinished()'), self.onUpdateTextBoxes)
 
@@ -133,10 +133,13 @@ class Example(QtGui.QMainWindow):
     def onUpdateTextBoxes(self):
         lowPassT = self.lowEdit.text().toDouble()
         highPassT = self.highEdit.text().toDouble()
+        self.canvas.onTextBoxesChanged(lowPassT[0],highPassT[0])
+
+    def onStartEndChanged(self):
         startTimeT = self.startEdit.text().toDouble()
         endTimeT = self.endEdit.text().toDouble()
+        self.canvas.onStartEndChanged(startTimeT[0],endTimeT[0])
 
-        self.canvas.onTextBoxesChanged(lowPassT[0],highPassT[0],startTimeT[0],endTimeT[0])
         
         
 def main():

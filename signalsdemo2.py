@@ -18,36 +18,37 @@ from PyQt4 import QtCore
 
 rawData = mne.io.read_raw_edf("../EEGDATA/CAPSTONE_AB/BASHAREE_TEST.edf",preload=True)
 
-displayData = simple.getDisplayData(rawData, 30, 34, 1, 2.0, 70.0)
+def setupZoom(displayData):
+    """ this function should be called whenever a "zoom" operation is performed""" 
+    global nrows, ncols, m, n, y, color, index
+    # Number of cols and rows in the table.
+    nrows = len(displayData[0])
+    ncols = 1
 
-# Number of cols and rows in the table.
-nrows = len(displayData[0])
-ncols = 1
+    # Number of signals.
+    m = nrows*ncols
 
-# Number of signals.
-m = nrows*ncols
+    # Number of samples per signal.
+    n = len(displayData[1])
 
-# Number of samples per signal.
-n = len(displayData[1])
+    # Various signal amplitudes.
+    #amplitudes = .1 + .2 * np.random.rand(m, 1).astype(np.float32)
+    #amplitudes = 1*np.ones((m,1),dtype=np.float32)
 
-# Various signal amplitudes.
-#amplitudes = .1 + .2 * np.random.rand(m, 1).astype(np.float32)
-amplitudes = 1*np.ones((m,1),dtype=np.float32)
+    # Generate the signals as a (m, n) array.
+    #y = amplitudes * np.random.randn(m, n).astype(np.float32)
+    y = np.float32(10000*np.array(displayData[0]))
 
-# Generate the signals as a (m, n) array.
-#y = amplitudes * np.random.randn(m, n).astype(np.float32)
-y = np.float32(10000*np.array(displayData[0]))
+    # Color of each vertex (TODO: make it more efficient by using a GLSL-based
+    # color map and the index).
+    color = np.repeat(np.random.uniform(size=(m, 3), low=.5, high=.9),
+                    n, axis=0).astype(np.float32)
 
-# Color of each vertex (TODO: make it more efficient by using a GLSL-based
-# color map and the index).
-color = np.repeat(np.random.uniform(size=(m, 3), low=.5, high=.9),
-                  n, axis=0).astype(np.float32)
-
-# Signal 2D index of each vertex (row and col) and x-index (sample index
-# within each signal).
-index = np.c_[np.repeat(np.repeat(np.arange(ncols), nrows), n),
-              np.repeat(np.tile(np.arange(nrows), ncols), n),
-              np.tile(np.arange(n), m)].astype(np.float32)
+    # Signal 2D index of each vertex (row and col) and x-index (sample index
+    # within each signal).
+    index = np.c_[np.repeat(np.repeat(np.arange(ncols), nrows), n),
+                np.repeat(np.tile(np.arange(nrows), ncols), n),
+                np.tile(np.arange(n), m)].astype(np.float32)
 
 VERT_SHADER = """
 #version 120
@@ -127,13 +128,6 @@ class Canvas(app.Canvas):
     def __init__(self, startEdit, endEdit, lowEdit, highEdit):
         app.Canvas.__init__(self, title='Use your wheel to scroll!',
                             keys='interactive')
-        self.program = gloo.Program(VERT_SHADER, FRAG_SHADER)
-        self.program['a_position'] = y.reshape(-1, 1)
-        self.program['a_color'] = color
-        self.program['a_index'] = index
-        self.program['u_scale'] = (1., 1.)
-        self.program['u_size'] = (nrows, ncols)
-        self.program['u_n'] = n
         self.startTime = 30.0
         self.endTime = 34.0
         self.storedAmplitude = 1.0
@@ -143,7 +137,10 @@ class Canvas(app.Canvas):
         self.endEdit = endEdit
         self.lowEdit = lowEdit
         self.highEdit = highEdit
-
+        displayData = simple.getDisplayData(rawData, self.startTime, self.endTime, self.storedAmplitude, self.lowPass, self.highPass)
+        setupZoom(displayData)
+        self.program = gloo.Program(VERT_SHADER, FRAG_SHADER)
+        self.setupZoomStep2()
         gloo.set_viewport(0, 0, *self.physical_size)
 
 #      self._timer = app.Timer('auto', connect=self.on_timer, start=True)
@@ -153,6 +150,16 @@ class Canvas(app.Canvas):
 
         self.show()
 
+    def setupZoomStep2(self):
+        #print "y: {y}, color: {c}, index: {i}".format(y=y.shape,c=color.shape,i=index.shape)
+        self.program['a_position'] = y.reshape(-1, 1)
+        self.program['a_color'] = color
+        self.program['a_index'] = index
+        self.program['u_scale'] = (1., 1.)
+        self.program['u_size'] = (nrows, ncols)
+        self.program['u_n'] = n
+        #print "done with setup zoom"
+        
     def on_resize(self, event):
         gloo.set_viewport(0, 0, *event.physical_size)
 
@@ -182,9 +189,7 @@ class Canvas(app.Canvas):
         self.program['a_position'] = y.reshape(-1, 1)
         self.update()
 
-    def onTextBoxesChanged(self, lowPass, highPass, startTime, endTime):
-        self.startTime = startTime;
-        self.endTime = endTime;
+    def onTextBoxesChanged(self, lowPass, highPass):
         self.lowPass = lowPass;
         self.highPass = highPass;
         print "startTime: {s}, endTime: {e}, lowPass: {l}, highPass: {h}".format(s=self.startTime, e=self.endTime, l=self.lowPass, h=self.highPass)
@@ -193,13 +198,22 @@ class Canvas(app.Canvas):
         self.program['a_position'] = y.reshape(-1, 1)
         self.update()
 
+    def onStartEndChanged(self, startTime, endTime):
+        self.startTime = startTime;
+        self.endTime = endTime;
+        displayData = simple.getDisplayData(rawData, self.startTime, self.endTime, self.storedAmplitude, self.lowPass, self.highPass)
+        setupZoom(displayData)
+        # self.program.delete()
+        # self.program = gloo.Program(VERT_SHADER, FRAG_SHADER)
+        self.setupZoomStep2()
+        self.update()
+
     def updateTextBoxes(self):
         #print "self.startTime: {s}".format(s=self.startTime)
         self.startEdit.setText(QtCore.QString.number(self.startTime,'f',1))
         self.endEdit.setText(QtCore.QString.number(self.endTime,'f',1))
         self.lowEdit.setText(QtCore.QString.number(self.lowPass,'f',1))
         self.highEdit.setText(QtCore.QString.number(self.highPass,'f',1))
-
 
     # def on_timer(self, event):
     #     """Add some data at the end of each signal (real-time signals)."""
