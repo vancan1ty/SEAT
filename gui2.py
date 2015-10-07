@@ -70,25 +70,29 @@ class Example(QtGui.QMainWindow):
         grid.setSpacing(10)
         grid.setColumnStretch(8,1)
 
+        validator = QtGui.QDoubleValidator(0.0,128.0,10)
+
         lowLbl = QtGui.QLabel('Lowpass (hz)')
         grid.addWidget(lowLbl, 0, 0)
-        lowEdit = QtGui.QLineEdit()
-        grid.addWidget(lowEdit, 0, 1)
+        self.lowEdit = QtGui.QLineEdit("2.0")
+        self.lowEdit.setValidator(validator)
+        grid.addWidget(self.lowEdit, 0, 1)
 
         highLbl = QtGui.QLabel('Highpass (hz)')
         grid.addWidget(highLbl, 0, 2)
-        highEdit = QtGui.QLineEdit()
-        grid.addWidget(highEdit, 0, 3)
+        self.highEdit = QtGui.QLineEdit("70.0")
+        self.highEdit.setValidator(validator)
+        grid.addWidget(self.highEdit, 0, 3)
 
         startLbl = QtGui.QLabel('Start Time')
         grid.addWidget(startLbl, 0, 4)
-        startEdit = QtGui.QLineEdit()
-        grid.addWidget(startEdit, 0, 5)
+        self.startEdit = QtGui.QLineEdit("20.0")
+        grid.addWidget(self.startEdit, 0, 5)
 
         endLbl = QtGui.QLabel('End Time')
         grid.addWidget(endLbl, 0, 6)
-        endEdit = QtGui.QLineEdit()
-        grid.addWidget(endEdit, 0, 7)
+        self.endEdit = QtGui.QLineEdit("30.0")
+        grid.addWidget(self.endEdit, 0, 7)
 
         sliderLabel = QtGui.QLabel('Amplitude')
         grid.addWidget(sliderLabel, 1, 0)
@@ -99,12 +103,17 @@ class Example(QtGui.QMainWindow):
         slider.setRange(0,100) #qslider does ints, so we divide by ten to get floats
         grid.addWidget(slider, 3, 0)
 
-        self.canvas = signalsdemo2.Canvas()
+        self.canvas = signalsdemo2.Canvas(self.startEdit, self.endEdit, self.lowEdit, self.highEdit)
         #scroller = QtGui.QScrollArea();
         #scroller.setWidget(c.native)
         grid.addWidget(self.canvas.native, 1, 1, 6, 9)
 
         QtCore.QObject.connect(slider, QtCore.SIGNAL('valueChanged(int)'), self.onUpdateSliderValue)
+        QtCore.QObject.connect(self.startEdit, QtCore.SIGNAL('editingFinished()'), self.onUpdateTextBoxes)
+        QtCore.QObject.connect(self.endEdit, QtCore.SIGNAL('editingFinished()'), self.onUpdateTextBoxes)
+        QtCore.QObject.connect(self.lowEdit, QtCore.SIGNAL('editingFinished()'), self.onUpdateTextBoxes)
+        QtCore.QObject.connect(self.highEdit, QtCore.SIGNAL('editingFinished()'), self.onUpdateTextBoxes)
+
         slider.setValue(self.canvas.storedAmplitude*10)
 
         holderWidget.setLayout(grid) 
@@ -120,6 +129,14 @@ class Example(QtGui.QMainWindow):
         rValue = value/10.0
         self.sliderValue.setText(str(rValue))
         self.canvas.onAmplitudeChanged(rValue)
+
+    def onUpdateTextBoxes(self):
+        lowPassT = self.lowEdit.text().toDouble()
+        highPassT = self.highEdit.text().toDouble()
+        startTimeT = self.startEdit.text().toDouble()
+        endTimeT = self.endEdit.text().toDouble()
+
+        self.canvas.onTextBoxesChanged(lowPassT[0],highPassT[0],startTimeT[0],endTimeT[0])
         
         
 def main():

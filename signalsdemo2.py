@@ -14,10 +14,11 @@ import numpy as np
 import math
 import mne
 import simple
+from PyQt4 import QtCore
 
 rawData = mne.io.read_raw_edf("../EEGDATA/CAPSTONE_AB/BASHAREE_TEST.edf",preload=True)
 
-displayData = simple.getDisplayData(rawData, 20, 30, 1, 2.0, 70.0)
+displayData = simple.getDisplayData(rawData, 30, 34, 1, 2.0, 70.0)
 
 # Number of cols and rows in the table.
 nrows = len(displayData[0])
@@ -123,7 +124,7 @@ void main() {
 """
 
 class Canvas(app.Canvas):
-    def __init__(self):
+    def __init__(self, startEdit, endEdit, lowEdit, highEdit):
         app.Canvas.__init__(self, title='Use your wheel to scroll!',
                             keys='interactive')
         self.program = gloo.Program(VERT_SHADER, FRAG_SHADER)
@@ -133,9 +134,15 @@ class Canvas(app.Canvas):
         self.program['u_scale'] = (1., 1.)
         self.program['u_size'] = (nrows, ncols)
         self.program['u_n'] = n
-        self.startTime = 20.0
-        self.endTime = 30.0
-        self.storedAmplitude = 1.0;
+        self.startTime = 30.0
+        self.endTime = 34.0
+        self.storedAmplitude = 1.0
+        self.lowPass = 2.0
+        self.highPass = 70.0
+        self.startEdit = startEdit
+        self.endEdit = endEdit
+        self.lowEdit = lowEdit
+        self.highEdit = highEdit
 
         gloo.set_viewport(0, 0, *self.physical_size)
 
@@ -162,17 +169,36 @@ class Canvas(app.Canvas):
         dx = np.sign(event.delta[1]) 
         self.startTime += dx
         self.endTime += dx
-        displayData = simple.getDisplayData(rawData, self.startTime, self.endTime, self.storedAmplitude, 2.0, 70.0)
+        displayData = simple.getDisplayData(rawData, self.startTime, self.endTime, self.storedAmplitude, self.lowPass, self.highPass)
         y = np.float32(10000*np.array(displayData[0]))
         self.program['a_position'] = y.reshape(-1, 1)
+        self.updateTextBoxes()
         self.update()
 
     def onAmplitudeChanged(self, nAmplitude):
         self.storedAmplitude = nAmplitude;
-        displayData = simple.getDisplayData(rawData, self.startTime, self.endTime, self.storedAmplitude, 2.0, 70.0)
+        displayData = simple.getDisplayData(rawData, self.startTime, self.endTime, self.storedAmplitude, self.lowPass, self.highPass)
         y = np.float32(10000*np.array(displayData[0]))
         self.program['a_position'] = y.reshape(-1, 1)
         self.update()
+
+    def onTextBoxesChanged(self, lowPass, highPass, startTime, endTime):
+        self.startTime = startTime;
+        self.endTime = endTime;
+        self.lowPass = lowPass;
+        self.highPass = highPass;
+        print "startTime: {s}, endTime: {e}, lowPass: {l}, highPass: {h}".format(s=self.startTime, e=self.endTime, l=self.lowPass, h=self.highPass)
+        displayData = simple.getDisplayData(rawData, self.startTime, self.endTime, self.storedAmplitude, self.lowPass, self.highPass)
+        y = np.float32(10000*np.array(displayData[0]))
+        self.program['a_position'] = y.reshape(-1, 1)
+        self.update()
+
+    def updateTextBoxes(self):
+        #print "self.startTime: {s}".format(s=self.startTime)
+        self.startEdit.setText(QtCore.QString.number(self.startTime,'f',1))
+        self.endEdit.setText(QtCore.QString.number(self.endTime,'f',1))
+        self.lowEdit.setText(QtCore.QString.number(self.lowPass,'f',1))
+        self.highEdit.setText(QtCore.QString.number(self.highPass,'f',1))
 
 
     # def on_timer(self, event):
