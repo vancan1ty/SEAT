@@ -1,12 +1,5 @@
-#!/usr/bin/env python
-# -*- coding: utf-8 -*-
-# vispy: gallery 2
-# Copyright (c) 2015, Vispy Development Team.
-# Distributed under the (new) BSD License. See LICENSE.txt for more info.
-
-"""
-Multiple real-time digital signals with GLSL-based clipping.
-"""
+# derived from vispy example.
+#CB 10/13/2015
 
 from vispy import gloo
 from vispy import app
@@ -20,10 +13,10 @@ SAMPLING_RATE=256
 START_TIME = 0.0
 END_TIME = 6.0
 
-def loadData():
+def loadData(filepath):
     global rawData,dSetName
-    dSetName = "BASHAREE_TEST"
-    rawData = mne.io.read_raw_edf("../EEGDATA/CAPSTONE_AB/BASHAREE_TEST.edf",preload=True)
+    dSetName = filepath.split("/")[-1]
+    rawData = mne.io.read_raw_edf(filepath,preload=True)
 
 def setupZoom(displayData):
     """ this function should be called whenever a "zoom" operation is performed""" 

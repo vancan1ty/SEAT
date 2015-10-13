@@ -10,18 +10,27 @@ SAMPLING_RATE=256
 START_TIME = 0.0
 END_TIME = 6.0
 
-def show_about_window():
-    QtGui.QMessageBox.information(None,"About Epilepsy Modeling","This amazing project\n\nwas created by:\nUtkarsh Garg\nJohnny Farrow\nJustin Jackson\nCurrell Berry\nMichael Long")
-        
-class Example(QtGui.QMainWindow):
+class EpWindow(QtGui.QMainWindow):
     
     def __init__(self):
-        super(Example, self).__init__()
-        signalsdemo2.loadData()
+        super(EpWindow, self).__init__()
+        signalsdemo2.loadData("../EEGDATA/CAPSTONE_AB/BASHAREE_TEST.edf")
         self.initUI()
+
+    def show_about_window(self):
+        QtGui.QMessageBox.information(None,"About Epilepsy Modeling","This amazing project\n\nwas created by:\nUtkarsh Garg\nJohnny Farrow\nJustin Jackson\nCurrell Berry\nMichael Long")
+
+    def show_file_dialog(self):
+        filePath = QtGui.QFileDialog.getOpenFileName(None,"Choose Dataset to Open", "C:/Users/vancan1ty", "EEG File (*.edf)")
+        signalsdemo2.loadData(filePath)
 
     def setupMenus(self):
         """set up menubar menus"""
+        openAction = QtGui.QAction('&Open', self)        
+        openAction.setShortcut('Ctrl+o')
+        openAction.setStatusTip('Choose Dataset to Open')
+        openAction.triggered.connect(self.show_file_dialog)
+
         exitAction = QtGui.QAction(QtGui.QIcon('exit.png'), '&Exit', self)        
         exitAction.setShortcut('Ctrl+Q')
         exitAction.setStatusTip('Exit application')
@@ -29,6 +38,7 @@ class Example(QtGui.QMainWindow):
 
         menubar = self.menuBar()
         fileMenu = menubar.addMenu('&File')
+        fileMenu.addAction(openAction)
         fileMenu.addAction(exitAction)
 
         cutAction = QtGui.QAction('&Cut', self)
@@ -56,7 +66,7 @@ class Example(QtGui.QMainWindow):
 
         helpMenu = menubar.addMenu('&Help')
         aboutAction = QtGui.QAction('&About', self)        
-        aboutAction.triggered.connect(show_about_window)
+        aboutAction.triggered.connect(self.show_about_window)
         helpMenu.addAction(aboutAction)
 
     def initUI(self):
@@ -148,7 +158,7 @@ class Example(QtGui.QMainWindow):
         
 def main():
     app = QtGui.QApplication(sys.argv)
-    ex = Example()
+    ex = EpWindow()
     sys.exit(app.exec_())
 
 
