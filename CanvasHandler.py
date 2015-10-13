@@ -8,51 +8,14 @@ from vispy.scene.visuals import Text
 import numpy as np
 import math
 import mne
-import simple
+import DataProcessing
 from PyQt4 import QtCore
 
 SAMPLING_RATE=256
 START_TIME = 0.0
 END_TIME = 6.0
 
-def loadData(filepath):
-    global rawData,dSetName
-    dSetName = filepath.split("/")[-1]
-    rawData = mne.io.read_raw_edf(filepath,preload=True)
-
-def setupZoom(displayData):
-    """ this function should be called whenever a "zoom" operation is performed"""
-    global nrows, ncols, m, n, y, color, index
-    # Number of cols and rows in the table.
-    nrows = len(displayData[0])
-    ncols = 1
-
-    # Number of signals.
-    m = nrows*ncols
-
-    # Number of samples per signal.
-    n = len(displayData[1])
-
-    # Various signal amplitudes.
-    #amplitudes = .1 + .2 * np.random.rand(m, 1).astype(np.float32)
-    #amplitudes = 1*np.ones((m,1),dtype=np.float32)
-
-    # Generate the signals as a (m, n) array.
-    #y = amplitudes * np.random.randn(m, n).astype(np.float32)
-    y = np.float32(10000*np.array(displayData[0]))
-
-    # Color of each vertex (TODO: make it more efficient by using a GLSL-based
-    # color map and the index).
-    color = np.repeat(np.random.uniform(size=(m, 3), low=.5, high=.9),
-                    n, axis=0).astype(np.float32)
-
-    # Signal 2D index of each vertex (row and col) and x-index (sample index
-    # within each signal).
-    index = np.c_[np.repeat(np.repeat(np.arange(ncols), nrows), n),
-                np.repeat(np.tile(np.arange(nrows), ncols), n),
-                np.tile(np.arange(n), m)].astype(np.float32)
-
-VERT_SHADER = """
+SERIES_VERT_SHADER = """
 #version 120
 
 // y coordinate of the position.
@@ -103,7 +66,7 @@ void main() {
 }
 """
 
-FRAG_SHADER = """
+SERIES_FRAG_SHADER = """
 #version 120
 
 varying vec4 v_color;
@@ -126,7 +89,10 @@ void main() {
 }
 """
 
-class Canvas(app.Canvas):
+class EEGCanvas(app.Canvas):
+    """ defines a class which encapsulates all information and control relating to the display of EEG data on the canvas 
+    
+   """
     def __init__(self, startEdit, endEdit, lowEdit, highEdit):
         app.Canvas.__init__(self, title='Use your wheel to scroll!',
                             keys='interactive')
@@ -139,14 +105,19 @@ class Canvas(app.Canvas):
         self.storedAmplitude = 1.0
         self.lowPass = 2.0
         self.highPass = 70.0
-        self.displayData = simple.getDisplayData(rawData, self.startTime, self.endTime, self.storedAmplitude, self.lowPass, self.highPass)
-        setupZoom(self.displayData)
-        self.channels = rawData.ch_names
+        self.show()
+
+    def setupDataDisplay(self):
+        """requires that you have already set a number of things on self"""
+        self.displayData = DataProcessing.getDisplayData(self.rawData, self.startTime, self.endTime, self.storedAmplitude, self.lowPass, self.highPass)
+        self.setupZoom(self.displayData)
+        self.channels = self.rawData.ch_names
         self.canvas = scene.SceneCanvas(keys='interactive')
         print(self.channels)
-        self.program = gloo.Program(VERT_SHADER, FRAG_SHADER)
+        self.program = gloo.Program(SERIES_VERT_SHADER, SERIES_FRAG_SHADER)
         self.setupZoomStep2()
         gloo.set_viewport(0, 0, *self.physical_size)
+        self.updateTextBoxes()
 
         #self.pressed = False
         self.events.mouse_press.connect((self, 'mouse_press'))
@@ -157,17 +128,49 @@ class Canvas(app.Canvas):
 
         gloo.set_state(clear_color='black', blend=True,
                        blend_func=('src_alpha', 'one_minus_src_alpha'))
+        self.update()
 
-        self.show()
+    def loadData(self,filepath):
+        self.dSetName = filepath.split("/")[-1]
+        self.rawData = mne.io.read_raw_edf(filepath,preload=True)
+        self.setupDataDisplay()
+
+    def setupZoom(self,displayData):
+        """ this function should be called whenever a "zoom" operation is performed"""
+        # Number of cols and rows in the table.
+        self.nrows = len(displayData[0])
+        self.ncols = 1
+
+        # Number of signals.
+        self.numSignals = self.nrows*self.ncols
+
+        # Number of samples per signal.
+        self.samplesPerSignal = len(displayData[1])
+
+        # Generate the signals as a (m, n) array.
+        #y = amplitudes * np.random.randn(m, n).astype(np.float32)
+        self.signalData = np.float32(10000*np.array(displayData[0]))
+
+        # Color of each vertex (TODO: make it more efficient by using a GLSL-based
+        # color map and the index).
+        self.color = np.repeat(np.random.uniform(size=(self.numSignals, 3), low=.5, high=.9),
+                        self.samplesPerSignal, axis=0).astype(np.float32)
+
+        # Signal 2D index of each vertex (row and col) and x-index (sample index
+        # within each signal).
+        self.index = np.c_[np.repeat(np.repeat(np.arange(self.ncols), self.nrows), self.samplesPerSignal),
+                    np.repeat(np.tile(np.arange(self.nrows), self.ncols), self.samplesPerSignal),
+                    np.tile(np.arange(self.samplesPerSignal), self.numSignals)].astype(np.float32)
+
 
     def setupZoomStep2(self):
         #print "y: {y}, color: {c}, index: {i}".format(y=y.shape,c=color.shape,i=index.shape)
-        self.program['a_position'] = y.reshape(-1, 1)
-        self.program['a_color'] = color
-        self.program['a_index'] = index
+        self.program['a_position'] = self.signalData.reshape(-1, 1)
+        self.program['a_color'] = self.color
+        self.program['a_index'] = self.index
         self.program['u_scale'] = (1., 1.)
-        self.program['u_size'] = (nrows, ncols)
-        self.program['u_n'] = n
+        self.program['u_size'] = (self.nrows, self.ncols)
+        self.program['u_n'] = self.samplesPerSignal
         #print "done with setup zoom"
 
     def on_resize(self, event):
@@ -190,37 +193,37 @@ class Canvas(app.Canvas):
             self.startTime += dx
             self.endTime += dx
         olen=len(self.displayData[0][0])
-        self.displayData = simple.getDisplayData(rawData, self.startTime, self.endTime, self.storedAmplitude, self.lowPass, self.highPass)
+        self.displayData = DataProcessing.getDisplayData(self.rawData, self.startTime, self.endTime, self.storedAmplitude, self.lowPass, self.highPass)
         if(len(self.displayData[0][0]) != olen):
             self.onStartEndChanged(self.startTime,self.endTime)
-        y = np.float32(10000*np.array(self.displayData[0]))
-        self.program['a_position'] = y.reshape(-1, 1)
+        self.signalData = np.float32(10000*np.array(self.displayData[0]))
+        self.program['a_position'] = self.signalData.reshape(-1, 1)
         self.updateTextBoxes()
         self.update()
 
     def onAmplitudeChanged(self, nAmplitude):
         self.storedAmplitude = nAmplitude;
-        self.displayData = simple.getDisplayData(rawData, self.startTime, self.endTime, self.storedAmplitude, self.lowPass, self.highPass)
-        y = np.float32(10000*np.array(self.displayData[0]))
-        self.program['a_position'] = y.reshape(-1, 1)
+        self.displayData = DataProcessing.getDisplayData(self.rawData, self.startTime, self.endTime, self.storedAmplitude, self.lowPass, self.highPass)
+        self.signalData = np.float32(10000*np.array(self.displayData[0]))
+        self.program['a_position'] = self.signalData.reshape(-1, 1)
         self.update()
 
     def onTextBoxesChanged(self, lowPass, highPass):
         self.lowPass = lowPass;
         self.highPass = highPass;
         print "startTime: {s}, endTime: {e}, lowPass: {l}, highPass: {h}".format(s=self.startTime, e=self.endTime, l=self.lowPass, h=self.highPass)
-        self.displayData = simple.getDisplayData(rawData, self.startTime, self.endTime, self.storedAmplitude, self.lowPass, self.highPass)
-        y = np.float32(10000*np.array(self.displayData[0]))
-        self.program['a_position'] = y.reshape(-1, 1)
+        self.displayData = DataProcessing.getDisplayData(self.rawData, self.startTime, self.endTime, self.storedAmplitude, self.lowPass, self.highPass)
+        self.signalData = np.float32(10000*np.array(self.displayData[0]))
+        self.program['a_position'] = self.signalData.reshape(-1, 1)
         self.update()
 
     def onStartEndChanged(self, startTime, endTime):
         self.startTime = startTime;
         self.endTime = endTime;
-        self.displayData = simple.getDisplayData(rawData, self.startTime, self.endTime, self.storedAmplitude, self.lowPass, self.highPass)
-        setupZoom(self.displayData)
+        self.displayData = DataProcessing.getDisplayData(self.rawData, self.startTime, self.endTime, self.storedAmplitude, self.lowPass, self.highPass)
+        self.setupZoom(self.displayData)
         # self.program.delete()
-        # self.program = gloo.Program(VERT_SHADER, FRAG_SHADER)
+        # self.program = gloo.Program(SERIES_VERT_SHADER, SERIES_FRAG_SHADER)
         self.setupZoomStep2()
         self.update()
 
@@ -262,7 +265,7 @@ class Canvas(app.Canvas):
         self.program.draw('line_strip')
 
 if __name__ == '__main__':
-    c = Canvas()
+    c = EEGCanvas()
     app.run()
 
 #c = Canvas()

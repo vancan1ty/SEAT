@@ -1,10 +1,15 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
-
+"""
+[CB 10/13/15] layers of abstraction
+EpWindow --> in charge of majority of GUI interaction and window chrome
+EEGCanvas --> in charge of majority of functionality relating to rendering data on canvas.  Also contains rawData and various state variables
+DataProcessing.py --> contains a variety of utility functions we use to process data
+"""
 import sys
 from PyQt4 import QtGui
 from PyQt4 import QtCore
-import signalsdemo2
+import CanvasHandler
 
 SAMPLING_RATE=256
 START_TIME = 0.0
@@ -14,15 +19,15 @@ class EpWindow(QtGui.QMainWindow):
     
     def __init__(self):
         super(EpWindow, self).__init__()
-        signalsdemo2.loadData("../EEGDATA/CAPSTONE_AB/BASHAREE_TEST.edf")
         self.initUI()
 
     def show_about_window(self):
         QtGui.QMessageBox.information(None,"About Epilepsy Modeling","This amazing project\n\nwas created by:\nUtkarsh Garg\nJohnny Farrow\nJustin Jackson\nCurrell Berry\nMichael Long")
 
     def show_file_dialog(self):
-        filePath = QtGui.QFileDialog.getOpenFileName(None,"Choose Dataset to Open", "C:/Users/vancan1ty", "EEG File (*.edf)")
-        signalsdemo2.loadData(filePath)
+        filePath = QtGui.QFileDialog.getOpenFileName(None,"Choose Dataset to Open", ".", "EEG File (*.edf)")
+        self.canvas.loadData(filePath)
+        self.populateUICanvas()
 
     def setupMenus(self):
         """set up menubar menus"""
@@ -65,9 +70,22 @@ class EpWindow(QtGui.QMainWindow):
         montageSelect.addAction(bananaAction)
 
         helpMenu = menubar.addMenu('&Help')
-        aboutAction = QtGui.QAction('&About', self)        
+        aboutAction = QtGui.QAction('&About', self)
         aboutAction.triggered.connect(self.show_about_window)
         helpMenu.addAction(aboutAction)
+
+    def populateUICanvas(self):
+        """ called after we have loaded rawData into canvas.  sets the values and such on the various elements """
+        freqValidator = QtGui.QDoubleValidator(0.0,SAMPLING_RATE/2.0,10)
+        timeValidator = QtGui.QDoubleValidator(0.0, self.canvas.rawData.times[-1], 10)
+
+        self.lowEdit.setValidator(freqValidator)
+        self.highEdit.setValidator(freqValidator)
+        self.startEdit.setValidator(timeValidator)
+        self.endEdit.setValidator(timeValidator)
+        self.canvas.setupDataDisplay()
+        self.statusBar().showMessage(self.canvas.dSetName + ".   " + str(self.canvas.rawData.times[-1]) + " seconds.")
+
 
     def initUI(self):
         """create the various UI elements"""
@@ -81,31 +99,24 @@ class EpWindow(QtGui.QMainWindow):
         grid.setSpacing(10)
         grid.setColumnStretch(8,1)
 
-        freqValidator = QtGui.QDoubleValidator(0.0,128.0,10)
-        timeValidator = QtGui.QDoubleValidator(0.0, signalsdemo2.rawData.times[-1], 10)
-
         lowLbl = QtGui.QLabel('Lowpass (hz)')
         grid.addWidget(lowLbl, 0, 0)
-        self.lowEdit = QtGui.QLineEdit("2.0")
-        self.lowEdit.setValidator(freqValidator)
+        self.lowEdit = QtGui.QLineEdit("")
         grid.addWidget(self.lowEdit, 0, 1)
 
         highLbl = QtGui.QLabel('Highpass (hz)')
         grid.addWidget(highLbl, 0, 2)
-        self.highEdit = QtGui.QLineEdit("70.0")
-        self.highEdit.setValidator(freqValidator)
+        self.highEdit = QtGui.QLineEdit("")
         grid.addWidget(self.highEdit, 0, 3)
 
         startLbl = QtGui.QLabel('Start Time')
         grid.addWidget(startLbl, 0, 4)
-        self.startEdit = QtGui.QLineEdit(str(START_TIME))
-        self.startEdit.setValidator(timeValidator)
+        self.startEdit = QtGui.QLineEdit("")
         grid.addWidget(self.startEdit, 0, 5)
 
         endLbl = QtGui.QLabel('End Time')
         grid.addWidget(endLbl, 0, 6)
-        self.endEdit = QtGui.QLineEdit(str(END_TIME))
-        self.endEdit.setValidator(timeValidator)
+        self.endEdit = QtGui.QLineEdit("")
         grid.addWidget(self.endEdit, 0, 7)
 
         sliderLabel = QtGui.QLabel('Amplitude')
@@ -113,11 +124,12 @@ class EpWindow(QtGui.QMainWindow):
         self.sliderValue = QtGui.QLabel()
         grid.addWidget(self.sliderValue, 2, 0)
 
+        self.canvas = CanvasHandler.EEGCanvas(self.startEdit, self.endEdit, self.lowEdit, self.highEdit)
+
         slider = QtGui.QSlider(QtCore.Qt.Vertical,holderWidget)
         slider.setRange(0,100) #qslider does ints, so we divide by ten to get floats
         grid.addWidget(slider, 3, 0)
 
-        self.canvas = signalsdemo2.Canvas(self.startEdit, self.endEdit, self.lowEdit, self.highEdit)
         #scroller = QtGui.QScrollArea();
         #scroller.setWidget(c.native)
         grid.addWidget(self.canvas.native, 1, 1, 6, 9)
@@ -133,7 +145,7 @@ class EpWindow(QtGui.QMainWindow):
         holderWidget.setLayout(grid) 
 
         self.setCentralWidget(holderWidget)
-        self.statusBar().showMessage(signalsdemo2.dSetName + ".   " + str(signalsdemo2.rawData.times[-1]) + " seconds.")
+        self.statusBar().showMessage("Use File->Open to choose a dataset to open")
         self.setGeometry(300, 300, 350, 300)
 
         self.setWindowTitle('Epilepsy Modeling')    
