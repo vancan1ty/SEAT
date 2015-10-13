@@ -3,6 +3,8 @@
 
 from vispy import gloo
 from vispy import app
+from vispy import scene
+from vispy.scene.visuals import Text
 import numpy as np
 import math
 import mne
@@ -19,7 +21,7 @@ def loadData(filepath):
     rawData = mne.io.read_raw_edf(filepath,preload=True)
 
 def setupZoom(displayData):
-    """ this function should be called whenever a "zoom" operation is performed""" 
+    """ this function should be called whenever a "zoom" operation is performed"""
     global nrows, ncols, m, n, y, color, index
     # Number of cols and rows in the table.
     nrows = len(displayData[0])
@@ -139,9 +141,17 @@ class Canvas(app.Canvas):
         self.highPass = 70.0
         self.displayData = simple.getDisplayData(rawData, self.startTime, self.endTime, self.storedAmplitude, self.lowPass, self.highPass)
         setupZoom(self.displayData)
+        self.channels = rawData.ch_names
+        self.canvas = scene.SceneCanvas(keys='interactive')
+        print(self.channels)
         self.program = gloo.Program(VERT_SHADER, FRAG_SHADER)
         self.setupZoomStep2()
         gloo.set_viewport(0, 0, *self.physical_size)
+
+        #self.pressed = False
+        self.events.mouse_press.connect((self, 'mouse_press'))
+        self.events.mouse_release.connect((self, 'mouse_release'))
+        #self.events.mouse_move.connect((self, 'on_mouse_move'))
 
 #      self._timer = app.Timer('auto', connect=self.on_timer, start=True)
 
@@ -159,7 +169,7 @@ class Canvas(app.Canvas):
         self.program['u_size'] = (nrows, ncols)
         self.program['u_n'] = n
         #print "done with setup zoom"
-        
+
     def on_resize(self, event):
         gloo.set_viewport(0, 0, *event.physical_size)
 
@@ -172,7 +182,7 @@ class Canvas(app.Canvas):
     #     self.program['u_scale'] = (max(1, scale_x_new), max(1, scale_y_new))
     #     self.update()
     def on_mouse_wheel(self, event):
-        dx = np.sign(event.delta[1]) 
+        dx = np.sign(event.delta[1])
         if((self.startTime + dx) > 0.5):
             self.startTime += dx
             self.endTime += dx
@@ -221,6 +231,23 @@ class Canvas(app.Canvas):
         self.lowEdit.setText(QtCore.QString.number(self.lowPass,'f',1))
         self.highEdit.setText(QtCore.QString.number(self.highPass,'f',1))
 
+    def mouse_press(self, event):
+        #self.pressed = True
+        self.oldPos = (event.pos[0], event.pos[1])
+
+    def mouse_release(self, event):
+        #self.pressed = False
+        self.newPos = (event.pos[0], event.pos[1])
+        """
+        CALL ZOOM IN FUNCTION WITH OLDPOS AND NEWPOS COORDS!
+        """
+
+        """
+    def on_mouse_move(self, event):
+        if(self.pressed):
+            print(event[0])
+        """
+
     # def on_timer(self, event):
     #     """Add some data at the end of each signal (real-time signals)."""
     #     k = 10
@@ -240,4 +267,3 @@ if __name__ == '__main__':
 
 #c = Canvas()
 #app.run()
-
