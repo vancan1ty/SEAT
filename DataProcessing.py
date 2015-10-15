@@ -1,12 +1,17 @@
+"""this file contains data processing functionality and matplotlib-based visualizations"""
 import matplotlib
 
 import mne
 import matplotlib.pyplot as plt
+import matplotlib.gridspec as gridspec
 import numpy as np
 import scipy as sp
 from scipy.signal import butter, lfilter, freqz
 from PIL import Image
 import re
+import wavelets
+
+SAMPLING_RATE=256
 
 #below is filter stuff
 #derived from http://stackoverflow.com/questions/25191620/creating-lowpass-filter-in-scipy-understanding-methods-and-units
@@ -82,7 +87,7 @@ def getDisplayData(realData, start_time, end_time, amplitude_adjust, lowpass, hi
     #spikesStructure = stupidIdentifySpikes(ldata, cutoff=0.0005)
     #linSpikes = convertSpikesStructureToLinearForm(spikesStructure)
     #avgdata = np.average(np.array(ldata),0)
-    ldata2 = map(lambda x: amplitude_adjust*butter_bandpass_filter(x,lowpass,highpass,256), ldata)
+    ldata2 = map(lambda x: amplitude_adjust*butter_bandpass_filter(x,lowpass,highpass,SAMPLING_RATE), ldata)
     return (ldata2,ltimes)
 
 def load_raw_annotations(rawAnnotationsPath):
@@ -126,3 +131,38 @@ def score_predictions(truth, predictions):
         if found:
             numCorrect += 1
     return (numCorrect, numPredictions - numCorrect, numSpikes - numCorrect)
+
+def generate_and_plot_waveletAnalysis(rawData,channel,startTime,endTime):
+    """takes in a Raw, indexes """
+    start, stop = rawData.time_as_index([startTime, endTime])
+    ldata, ltimes = rawData[channel, start:stop]
+    print "ldata shape: " + str(ldata.shape)
+    wa = make_waveletAnalysis(ldata[0],SAMPLING_RATE)
+    do_tfr_plot(wa.time+startTime, wa.scales, wa.wavelet_power,ldata[0])
+
+def make_waveletAnalysis(data,samplingRate):
+    """takes in array containing data for one component/channel, and the samplingRate"""
+    dt = 1.0/samplingRate
+    wa = wavelets.WaveletAnalysis(data, dt=dt)
+    return wa
+
+def do_tfr_plot(time,scales,power,data):
+    """data is included so that you can see the channel as well"""
+    fig, axarr = plt.subplots(2,sharex=True)
+    T, S = np.meshgrid(time, scales)
+    print "shape: " + str(power.shape)
+    
+    gs = gridspec.GridSpec(2, 1,height_ratios=[2,1])
+    ax1 = plt.subplot(gs[0])
+    ax2 = plt.subplot(gs[1],sharex=ax1)
+    fig.tight_layout()
+
+    # print "time[0]: " + str(time[0]) + " time[-1] " + str(time[-1])
+    ax1.set_xlim([time[0], time[-1]])
+    print "scales.shape " + str(scales.shape)
+    ax1.contourf(T, S, power, 100)
+    #ax1.set_yscale('log')
+    ax2.plot(time, data)
+
+    plt.show()
+

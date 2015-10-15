@@ -14,6 +14,10 @@ import sys
 from PyQt4 import QtGui
 from PyQt4 import QtCore
 import CanvasHandler
+import DataProcessing
+import mne
+from mne.time_frequency import tfr_multitaper, tfr_stockwell, tfr_morlet
+import numpy as np
 
 SAMPLING_RATE=256
 START_TIME = 0.0
@@ -24,6 +28,10 @@ class EpWindow(QtGui.QMainWindow):
     def __init__(self):
         super(EpWindow, self).__init__()
         self.initUI()
+        #CB default initialization below
+        filePath = "../EEGDATA/CAPSTONE_AB/BASHAREE_TEST.edf"
+        self.canvas.loadData(filePath)
+        self.populateUICanvas()
 
     def show_about_window(self):
         QtGui.QMessageBox.information(None,"About Epilepsy Modeling","This amazing project\n\nwas created by:\nUtkarsh Garg\nJohnny Farrow\nJustin Jackson\nCurrell Berry\nMichael Long")
@@ -37,6 +45,9 @@ class EpWindow(QtGui.QMainWindow):
         start = self.canvas.startTime
         end = self.canvas.endTime
         self.canvas.rawData.plot_psd(start,end,picks=range(1,15))
+
+    def show_tfr_plot(self):
+        DataProcessing.generate_and_plot_waveletAnalysis(self.canvas.rawData,3,self.canvas.startTime,self.canvas.endTime)
 
     def setupMenus(self):
         """set up menubar menus"""
@@ -60,10 +71,16 @@ class EpWindow(QtGui.QMainWindow):
         sMapAction.setStatusTip('Calculate a power-frequency spectral map for the dataset over the current time period.')
         sMapAction.triggered.connect(self.show_spectral_map)
 
+        tfMapAction = QtGui.QAction('&Show Time-Frequency Plot', self)        
+        tfMapAction.setShortcut('Ctrl+t')
+        tfMapAction.setStatusTip('Calculate a time-frequency plot using Morlet transform.')
+        tfMapAction.triggered.connect(self.show_tfr_plot)
+
         cutAction = QtGui.QAction('&Cut', self)
         copyAction = QtGui.QAction('&Copy', self)
         pasteAction = QtGui.QAction('&Paste', self)
         editMenu = menubar.addMenu('&Edit')
+        editMenu.addAction(tfMapAction)
         editMenu.addAction(sMapAction)
         editMenu.addAction(cutAction)
         editMenu.addAction(copyAction)
@@ -180,13 +197,10 @@ class EpWindow(QtGui.QMainWindow):
         endTimeT = self.endEdit.text().toDouble()
         self.canvas.onStartEndChanged(startTimeT[0],endTimeT[0])
 
-        
-        
 def main():
     app = QtGui.QApplication(sys.argv)
     ex = EpWindow()
     sys.exit(app.exec_())
-
 
 if __name__ == '__main__':
     main()
