@@ -1,0 +1,3 @@
+[submodule "wavelets"]
+	path = wavelets
+	url = https://github.com/aaren/wavelets
