@@ -4,7 +4,7 @@
 [CB 10/13/15] layers of abstraction
 EpWindow --> in charge of majority of GUI interaction and window chrome
 EEGCanvas --> in charge of majority of functionality relating to rendering data on canvas.  Also contains rawData and various state variables
-DataProcessing.py --> contains a variety of utility functions we use to process data
+DataProcessing.py --> contains a variety of utility functions we use to process data.  also contains matplotlib plotting fns.
 
 BUGS:
 1. Can't handle large datasets!
@@ -33,6 +33,12 @@ class EpWindow(QtGui.QMainWindow):
         self.canvas.loadData(filePath)
         self.populateUICanvas()
 
+    def runSpikeDetection(self):
+        """runs stupid spike detector on only 1st channel"""
+        ch1Spikes = DataProcessing.stupidIdentifySpikes(self.canvas.rawData[1,:][0],cutoff=self.thresholdEdit.text().toDouble()[0])
+        print ch1Spikes[0]
+        QtGui.QMessageBox.information(None,"Report","{d} spikes found.".format(d=len(ch1Spikes[0])))
+        
     def show_about_window(self):
         QtGui.QMessageBox.information(None,"About Epilepsy Modeling","This amazing project\n\nwas created by:\nUtkarsh Garg\nJohnny Farrow\nJustin Jackson\nCurrell Berry\nMichael Long")
 
@@ -159,7 +165,19 @@ class EpWindow(QtGui.QMainWindow):
 
         slider = QtGui.QSlider(QtCore.Qt.Vertical,holderWidget)
         slider.setRange(0,100) #qslider does ints, so we divide by ten to get floats
-        grid.addWidget(slider, 3, 0)
+        grid.addWidget(slider, 3, 0,alignment=QtCore.Qt.AlignHCenter)
+
+        spikeLbl = QtGui.QLabel('Threshold')
+        grid.addWidget(spikeLbl, 4, 0)
+        self.thresholdEdit = QtGui.QLineEdit("0.001")
+        self.thresholdEdit.setMaximumWidth(80)
+        tValidator = QtGui.QDoubleValidator(0.0,1.0,12)
+        self.thresholdEdit.setValidator(tValidator)
+
+        grid.addWidget(self.thresholdEdit, 5, 0)
+
+        spikeButton = QtGui.QPushButton('Find Spikes', holderWidget)
+        grid.addWidget(spikeButton, 6, 0)
 
         #scroller = QtGui.QScrollArea();
         #scroller.setWidget(c.native)
@@ -170,6 +188,8 @@ class EpWindow(QtGui.QMainWindow):
         QtCore.QObject.connect(self.endEdit, QtCore.SIGNAL('editingFinished()'), self.onStartEndChanged)
         QtCore.QObject.connect(self.lowEdit, QtCore.SIGNAL('editingFinished()'), self.onUpdateTextBoxes)
         QtCore.QObject.connect(self.highEdit, QtCore.SIGNAL('editingFinished()'), self.onUpdateTextBoxes)
+        QtCore.QObject.connect(spikeButton, QtCore.SIGNAL('clicked()'), self.runSpikeDetection)
+
 
         slider.setValue(self.canvas.storedAmplitude*10)
 

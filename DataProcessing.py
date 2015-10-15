@@ -50,6 +50,7 @@ def convertSpikesStructureToLinearForm(spikesstructure):
     return out
 
 def stupidIdentifySpikes(data, spikekernellength=128, cutoff=0.0133):
+    """CB expects a list of arrays as data."""
     thekernel = sp.signal.morlet(spikekernellength)
     #[CB 9/5/2015] So this kernel is only for "detecting" spikes of a given format.
     #a.k.a. it sucks.
