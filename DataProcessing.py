@@ -126,4 +126,3 @@ def score_predictions(truth, predictions):
         if found:
             numCorrect += 1
     return (numCorrect, numPredictions - numCorrect, numSpikes - numCorrect)
-

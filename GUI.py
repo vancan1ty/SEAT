@@ -33,6 +33,11 @@ class EpWindow(QtGui.QMainWindow):
         self.canvas.loadData(filePath)
         self.populateUICanvas()
 
+    def show_spectral_map(self):
+        start = self.canvas.startTime
+        end = self.canvas.endTime
+        self.canvas.rawData.plot_psd(start,end,picks=range(1,15))
+
     def setupMenus(self):
         """set up menubar menus"""
         openAction = QtGui.QAction('&Open', self)        
@@ -50,10 +55,16 @@ class EpWindow(QtGui.QMainWindow):
         fileMenu.addAction(openAction)
         fileMenu.addAction(exitAction)
 
+        sMapAction = QtGui.QAction('&Show Spectral Map', self)        
+        sMapAction.setShortcut('Ctrl+m')
+        sMapAction.setStatusTip('Calculate a power-frequency spectral map for the dataset over the current time period.')
+        sMapAction.triggered.connect(self.show_spectral_map)
+
         cutAction = QtGui.QAction('&Cut', self)
         copyAction = QtGui.QAction('&Copy', self)
         pasteAction = QtGui.QAction('&Paste', self)
         editMenu = menubar.addMenu('&Edit')
+        editMenu.addAction(sMapAction)
         editMenu.addAction(cutAction)
         editMenu.addAction(copyAction)
         editMenu.addAction(pasteAction)
