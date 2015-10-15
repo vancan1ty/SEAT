@@ -23,6 +23,32 @@ END_TIME = 6.0
 V = np.zeros(6, [("position", np.float32, 3)])
 V["position"] = np.float32((np.random.rand(6,3)*2-1))
 
+zoombox_vertex_shader = """
+attribute vec2 a_position;
+attribute vec2 a_texCoord;
+uniform vec2 u_resolution;
+varying vec2 v_texCoord;
+void main() {
+    // convert the rectangle from pixels to 0.0 to 1.0
+    vec2 zeroToOne = a_position / u_resolution;
+    // convert from 0->1 to 0->2
+    vec2 zeroToTwo = zeroToOne * 2.0;
+    // convert from 0->2 to -1->+1 (clipspace)
+    vec2 clipSpace = zeroToTwo - 1.0;
+    gl_Position = vec4(clipSpace * vec2(1, -1), 0, 1);
+    // pass the texCoord to the fragment shader
+    // The GPU will interpolate this value between points.
+    v_texCoord = zeroToOne;
+}
+"""
+
+zoombox_fragment_shader = """
+void main()
+{
+    gl_FragColor = vec4 (0.5, 0.0, 0.0, 0.1);
+}
+"""
+
 prog2_vertex_shader = """
 attribute vec3 position;
 void main()
@@ -113,8 +139,8 @@ void main() {
 """
 
 class EEGCanvas(app.Canvas):
-    """ defines a class which encapsulates all information and control relating to the display of EEG data on the canvas 
-    
+    """ defines a class which encapsulates all information and control relating to the display of EEG data on the canvas
+
    """
     def __init__(self, startEdit, endEdit, lowEdit, highEdit):
         app.Canvas.__init__(self, title='Use your wheel to scroll!',
@@ -136,17 +162,23 @@ class EEGCanvas(app.Canvas):
         self.setupZoom(self.displayData)
         self.channels = self.rawData.ch_names
         self.canvas = scene.SceneCanvas(keys='interactive')
-        print(self.channels)
+        #print(self.channels)
         self.program = gloo.Program(SERIES_VERT_SHADER, SERIES_FRAG_SHADER)
         self.vertices = gloo.VertexBuffer(V)
         self.prog2 = gloo.Program(prog2_vertex_shader, prog2_fragment_shader)
         self.prog2.bind(self.vertices)
 
+        self.progZoom = gloo.Program(zoombox_vertex_shader, zoombox_fragment_shader)
+
+
         self.setupZoomStep2()
         gloo.set_viewport(0, 0, *self.physical_size)
         self.updateTextBoxes()
 
-        #self.pressed = False
+        self.dragZoom = False
+        self.oldPos = None
+        self.newPos = None
+        self.posDiff = None
         self.events.mouse_press.connect((self, 'mouse_press'))
         self.events.mouse_release.connect((self, 'mouse_release'))
         #self.events.mouse_move.connect((self, 'on_mouse_move'))
@@ -262,20 +294,16 @@ class EEGCanvas(app.Canvas):
         self.highEdit.setText(QtCore.QString.number(self.highPass,'f',1))
 
     def mouse_press(self, event):
-        #self.pressed = True
         self.oldPos = (event.pos[0], event.pos[1])
+        self.dragZoom = True
 
     def mouse_release(self, event):
-        #self.pressed = False
         self.newPos = (event.pos[0], event.pos[1])
+        self.posDiff = (self.newPos[0] - self.oldPos[0], self.newPos[1] - self.oldPos[1])
+        print self.posDiff
+        self.dragZoom = False
         """
         CALL ZOOM IN FUNCTION WITH OLDPOS AND NEWPOS COORDS!
-        """
-
-        """
-    def on_mouse_move(self, event):
-        if(self.pressed):
-            print(event[0])
         """
 
     # def on_timer(self, event):
@@ -295,6 +323,10 @@ class EEGCanvas(app.Canvas):
 
         self.prog2.draw('triangles')
         self.program.draw('line_strip')
+        if self.dragZoom is True:
+            self.zoomboxPositions = np.array([ oldPos, self.posDiff[1], self.posDiff[0], self.posDiff ])
+            self.progZoom['a_position'] = gloo.VertexBuffer(self.zoomboxPositions.astype(np.float32))
+            self.progZoom.draw(gl.GL_TRIANGLE_STRIP)
 
 if __name__ == '__main__':
     c = EEGCanvas()

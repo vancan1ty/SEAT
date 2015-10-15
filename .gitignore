@@ -1,3 +1,4 @@
 figures/*.png
 *.pyc
 *~
+.DS_Store
