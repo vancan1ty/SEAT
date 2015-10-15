@@ -5,6 +5,10 @@
 EpWindow --> in charge of majority of GUI interaction and window chrome
 EEGCanvas --> in charge of majority of functionality relating to rendering data on canvas.  Also contains rawData and various state variables
 DataProcessing.py --> contains a variety of utility functions we use to process data
+
+BUGS:
+1. Can't handle large datasets!
+
 """
 import sys
 from PyQt4 import QtGui
@@ -85,7 +89,6 @@ class EpWindow(QtGui.QMainWindow):
         self.endEdit.setValidator(timeValidator)
         self.canvas.setupDataDisplay()
         self.statusBar().showMessage(self.canvas.dSetName + ".   " + str(self.canvas.rawData.times[-1]) + " seconds.")
-
 
     def initUI(self):
         """create the various UI elements"""
