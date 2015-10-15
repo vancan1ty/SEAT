@@ -15,6 +15,26 @@ SAMPLING_RATE=256
 START_TIME = 0.0
 END_TIME = 6.0
 
+V = np.zeros(4, [("position", np.float32, 3)])
+
+V["position"] = [[ 0.5, 0.5, 0], [-0.5, 0.5, 0], [-0.5,-0.5, 0], [ 1,-1, 0]]
+I = [0, 1, 2, 0, 2, 3]
+
+prog2_vertex_shader = """
+attribute vec3 position;
+void main()
+{
+    gl_Position = vec4(position, 1.0);
+}
+"""
+
+prog2_fragment_shader = """
+void main()
+{
+    gl_FragColor = vec4 (0.0, 0.5, 0.0, 0.1);
+}
+"""
+
 SERIES_VERT_SHADER = """
 #version 120
 
@@ -115,6 +135,11 @@ class EEGCanvas(app.Canvas):
         self.canvas = scene.SceneCanvas(keys='interactive')
         print(self.channels)
         self.program = gloo.Program(SERIES_VERT_SHADER, SERIES_FRAG_SHADER)
+        vertices = gloo.VertexBuffer(V)
+        self.p2indices = gloo.IndexBuffer(I)
+        self.prog2 = gloo.Program(prog2_vertex_shader, prog2_fragment_shader)
+        self.prog2.bind(vertices)
+
         self.setupZoomStep2()
         gloo.set_viewport(0, 0, *self.physical_size)
         self.updateTextBoxes()
@@ -262,6 +287,7 @@ class EEGCanvas(app.Canvas):
 
     def on_draw(self, event):
         gloo.clear()
+        self.prog2.draw('triangles',self.p2indices)
         self.program.draw('line_strip')
 
 if __name__ == '__main__':
