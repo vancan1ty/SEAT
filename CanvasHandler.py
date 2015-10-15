@@ -15,10 +15,13 @@ SAMPLING_RATE=256
 START_TIME = 0.0
 END_TIME = 6.0
 
-V = np.zeros(4, [("position", np.float32, 3)])
 
-V["position"] = [[ 0.5, 0.5, 0], [-0.5, 0.5, 0], [-0.5,-0.5, 0], [ 0.5,-0.5, 0]]
-I = [0, 1, 2, 0, 2, 3]
+# V["position"] = [[ -0.5, 1, 0], [-0.5, -1, 0],
+#                            [0,1, 0],      [0,-1,0],
+#                            [0.5, 1, 0], [0.5,-1, 0]]
+
+V = np.zeros(6, [("position", np.float32, 3)])
+V["position"] = np.float32((np.random.rand(6,3)*2-1))
 
 prog2_vertex_shader = """
 attribute vec3 position;
@@ -135,10 +138,9 @@ class EEGCanvas(app.Canvas):
         self.canvas = scene.SceneCanvas(keys='interactive')
         print(self.channels)
         self.program = gloo.Program(SERIES_VERT_SHADER, SERIES_FRAG_SHADER)
-        vertices = gloo.VertexBuffer(V)
-        self.p2indices = gloo.IndexBuffer(I)
+        self.vertices = gloo.VertexBuffer(V)
         self.prog2 = gloo.Program(prog2_vertex_shader, prog2_fragment_shader)
-        self.prog2.bind(vertices)
+        self.prog2.bind(self.vertices)
 
         self.setupZoomStep2()
         gloo.set_viewport(0, 0, *self.physical_size)
@@ -210,7 +212,7 @@ class EEGCanvas(app.Canvas):
     #     self.program['u_scale'] = (max(1, scale_x_new), max(1, scale_y_new))
     #     self.update()
     def on_mouse_wheel(self, event):
-        dx = np.sign(event.delta[1])
+        dx = -np.sign(event.delta[1])
         if((self.startTime + dx) > 0.5):
             self.startTime += dx
             self.endTime += dx
@@ -287,7 +289,11 @@ class EEGCanvas(app.Canvas):
 
     def on_draw(self, event):
         gloo.clear()
-        self.prog2.draw('triangles',self.p2indices)
+        V2 = np.zeros(6, [("position", np.float32, 3)])
+        V2["position"] = np.float32((np.random.rand(6,3)*2-1))
+        self.vertices.set_data(V2)
+
+        self.prog2.draw('triangles')
         self.program.draw('line_strip')
 
 if __name__ == '__main__':
