@@ -24,7 +24,7 @@ START_TIME = 0.0
 END_TIME = 6.0
 
 class EpWindow(QtGui.QMainWindow):
-    
+
     def __init__(self):
         super(EpWindow, self).__init__()
         self.initUI()
@@ -38,7 +38,7 @@ class EpWindow(QtGui.QMainWindow):
         ch1Spikes = DataProcessing.stupidIdentifySpikes(self.canvas.rawData[1,:][0],cutoff=self.thresholdEdit.text().toDouble()[0])
         print ch1Spikes[0]
         QtGui.QMessageBox.information(None,"Report","{d} spikes found.".format(d=len(ch1Spikes[0])))
-        
+
     def show_about_window(self):
         QtGui.QMessageBox.information(None,"About Epilepsy Modeling","This amazing project\n\nwas created by:\nUtkarsh Garg\nJohnny Farrow\nJustin Jackson\nCurrell Berry\nMichael Long")
 
@@ -57,12 +57,12 @@ class EpWindow(QtGui.QMainWindow):
 
     def setupMenus(self):
         """set up menubar menus"""
-        openAction = QtGui.QAction('&Open', self)        
+        openAction = QtGui.QAction('&Open', self)
         openAction.setShortcut('Ctrl+o')
         openAction.setStatusTip('Choose Dataset to Open')
         openAction.triggered.connect(self.show_file_dialog)
 
-        exitAction = QtGui.QAction(QtGui.QIcon('exit.png'), '&Exit', self)        
+        exitAction = QtGui.QAction(QtGui.QIcon('exit.png'), '&Exit', self)
         exitAction.setShortcut('Ctrl+Q')
         exitAction.setStatusTip('Exit application')
         exitAction.triggered.connect(QtGui.qApp.quit)
@@ -72,12 +72,12 @@ class EpWindow(QtGui.QMainWindow):
         fileMenu.addAction(openAction)
         fileMenu.addAction(exitAction)
 
-        sMapAction = QtGui.QAction('&Show Spectral Map', self)        
+        sMapAction = QtGui.QAction('&Show Spectral Map', self)
         sMapAction.setShortcut('Ctrl+m')
         sMapAction.setStatusTip('Calculate a power-frequency spectral map for the dataset over the current time period.')
         sMapAction.triggered.connect(self.show_spectral_map)
 
-        tfMapAction = QtGui.QAction('&Show Time-Frequency Plot', self)        
+        tfMapAction = QtGui.QAction('&Show Time-Frequency Plot', self)
         tfMapAction.setShortcut('Ctrl+t')
         tfMapAction.setStatusTip('Calculate a time-frequency plot using Morlet transform.')
         tfMapAction.triggered.connect(self.show_tfr_plot)
@@ -126,11 +126,11 @@ class EpWindow(QtGui.QMainWindow):
 
     def initUI(self):
         """create the various UI elements"""
-        #create pulldown menus 
+        #create pulldown menus
         self.setupMenus()
 
         self.statusBar()
-        
+
         holderWidget = QtGui.QWidget()
         grid = QtGui.QGridLayout()
         grid.setSpacing(10)
@@ -193,13 +193,14 @@ class EpWindow(QtGui.QMainWindow):
 
         slider.setValue(self.canvas.storedAmplitude*10)
 
-        holderWidget.setLayout(grid) 
+        holderWidget.setLayout(grid)
 
         self.setCentralWidget(holderWidget)
         self.statusBar().showMessage("Use File->Open to choose a dataset to open")
         self.setGeometry(300, 300, 350, 300)
 
-        self.setWindowTitle('Epilepsy Modeling')    
+        self.setWindowTitle('Epilepsy Modeling')
+        self.resize(1200, 800)   
         self.show()
 
     def onUpdateSliderValue(self, value):

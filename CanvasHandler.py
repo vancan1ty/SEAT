@@ -27,29 +27,10 @@ V3 = np.zeros(6, [("position", np.float32, 3)])
 V3["position"] = np.float32([[-0.2,0.2,0],[0.2,0.2,0],[-0.2,-0.2,0],
                                                            [-0.2,-0.2,0],[0.2,-0.2,0],[0.2,0.2,0]])
 
-zoombox_vertex_shader = """
-attribute vec2 a_position;
-attribute vec2 a_texCoord;
-uniform vec2 u_resolution;
-varying vec2 v_texCoord;
-void main() {
-    // convert the rectangle from pixels to 0.0 to 1.0
-    vec2 zeroToOne = a_position / u_resolution;
-    // convert from 0->1 to 0->2
-    vec2 zeroToTwo = zeroToOne * 2.0;
-    // convert from 0->2 to -1->+1 (clipspace)
-    vec2 clipSpace = zeroToTwo - 1.0;
-    gl_Position = vec4(clipSpace * vec2(1, -1), 0, 1);
-    // pass the texCoord to the fragment shader
-    // The GPU will interpolate this value between points.
-    v_texCoord = zeroToOne;
-}
-"""
-
 zoombox_fragment_shader = """
 void main()
 {
-    gl_FragColor = vec4 (0.5, 0.0, 0.0, 0.1);
+    gl_FragColor = vec4(0.7, 0.7, 0.0, 0.1);
 }
 """
 
@@ -64,7 +45,7 @@ void main()
 prog2_fragment_shader = """
 void main()
 {
-    gl_FragColor = vec4 (0.0, 0.5, 0.0, 0.1);
+    gl_FragColor = vec4(0.0, 0.5, 0.0, 0.1);
 }
 """
 
@@ -158,6 +139,10 @@ class EEGCanvas(app.Canvas):
         self.storedAmplitude = 1.0
         self.lowPass = 2.0
         self.highPass = 70.0
+        self.numchannels = 0 #maybe don't need this because re-rendering
+
+        self.channelPositions = self.getChannelPositions()
+
         self.show()
 
     def setupDataDisplay(self):
@@ -173,7 +158,7 @@ class EEGCanvas(app.Canvas):
         self.prog2 = gloo.Program(prog2_vertex_shader, prog2_fragment_shader)
         self.prog2.bind(self.vertices)
 
-        self.progZoom = gloo.Program(prog2_vertex_shader, prog2_fragment_shader)
+        self.progZoom = gloo.Program(prog2_vertex_shader, zoombox_fragment_shader)
         self.progZoom.bind(self.zoomBoxBuffer)
 
         self.setupZoomStep2()
@@ -236,6 +221,18 @@ class EEGCanvas(app.Canvas):
         self.program['u_size'] = (self.nrows, self.ncols)
         self.program['u_n'] = self.samplesPerSignal
         #print "done with setup zoom"
+
+
+    def getChannelPositions(self):
+        """
+        TODO:
+        self.program['u_size'][0] / self.physical_size[1]
+
+        This will get the amount of vertical space each channel
+        has. This gives us a way to determine which spaces are
+        selected in order to zoom.
+        """
+
 
     def on_resize(self, event):
         gloo.set_viewport(0, 0, *event.physical_size)
@@ -300,27 +297,19 @@ class EEGCanvas(app.Canvas):
 
     def mouse_press(self, event):
         self.oldPos = (float(event.pos[0])/self.size[0]*2-1, -((float(event.pos[1])/self.size[1])*2-1))
-        # self.oldPos = (event.pos[0], event.pos[1])
         self.dragZoom = True
         self.update()
 
     def on_mouse_move(self, event):
         #print "self.size {s}".format(s=self.size)
         self.newPos = ((float(event.pos[0])/self.size[0])*2-1, -((float(event.pos[1])/self.size[1])*2-1))
-        #print self.oldPos
-        #print self.newPos
-        #self.posDiff = (self.newPos[0] - self.oldPos[0], self.newPos[1] - self.oldPos[1])
-        #print self.posDiff
         self.update()
 
     def mouse_release(self, event):
         self.dragZoom = False
-
         self.update()
-        print "FALSE"
-        """
-        CALL ZOOM IN FUNCTION WITH OLDPOS AND NEWPOS COORDS!
-        """
+        #print self.program['u_size'][0]
+        #print self.physical_size[1] #height
 
     # def on_timer(self, event):
     #     """Add some data at the end of each signal (real-time signals)."""
@@ -334,8 +323,6 @@ class EEGCanvas(app.Canvas):
     def on_draw(self, event):
         gloo.clear()
         if (self.dragZoom):
-            #     # self.zoomboxPositions = np.array([ self.oldPos, self.posDiff[1], self.posDiff[0], self.posDiff ])
-            #     # self.progZoom['a_position'] = gloo.VertexBuffer(self.zoomboxPositions.astype(np.float32))
             xDiff = self.newPos[0]-self.oldPos[0]
             yDiff = self.newPos[1]-self.oldPos[1]
             V4 = np.zeros(6, [("position", np.float32, 3)])
@@ -351,7 +338,7 @@ class EEGCanvas(app.Canvas):
              V2 = np.zeros(6, [("position", np.float32, 3)])
              V2["position"] = np.float32((np.random.rand(6,3)*2-1))
              self.vertices.set_data(V2)
-             self.prog2.draw('triangles')
+             #self.prog2.draw('triangles')
         self.program.draw('line_strip')
 
 if __name__ == '__main__':
