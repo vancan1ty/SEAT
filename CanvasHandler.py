@@ -23,6 +23,10 @@ END_TIME = 6.0
 V = np.zeros(6, [("position", np.float32, 3)])
 V["position"] = np.float32((np.random.rand(6,3)*2-1))
 
+V3 = np.zeros(6, [("position", np.float32, 3)])
+V3["position"] = np.float32([[-0.2,0.2,0],[0.2,0.2,0],[-0.2,-0.2,0],
+                                                           [-0.2,-0.2,0],[0.2,-0.2,0],[0.2,0.2,0]])
+
 zoombox_vertex_shader = """
 attribute vec2 a_position;
 attribute vec2 a_texCoord;
@@ -165,11 +169,12 @@ class EEGCanvas(app.Canvas):
         #print(self.channels)
         self.program = gloo.Program(SERIES_VERT_SHADER, SERIES_FRAG_SHADER)
         self.vertices = gloo.VertexBuffer(V)
+        self.zoomBoxBuffer = gloo.VertexBuffer(V3)
         self.prog2 = gloo.Program(prog2_vertex_shader, prog2_fragment_shader)
         self.prog2.bind(self.vertices)
 
-        self.progZoom = gloo.Program(zoombox_vertex_shader, zoombox_fragment_shader)
-
+        self.progZoom = gloo.Program(prog2_vertex_shader, prog2_fragment_shader)
+        self.progZoom.bind(self.zoomBoxBuffer)
 
         self.setupZoomStep2()
         gloo.set_viewport(0, 0, *self.physical_size)
@@ -181,7 +186,7 @@ class EEGCanvas(app.Canvas):
         self.posDiff = None
         self.events.mouse_press.connect((self, 'mouse_press'))
         self.events.mouse_release.connect((self, 'mouse_release'))
-        #self.events.mouse_move.connect((self, 'on_mouse_move'))
+        self.events.mouse_move.connect((self, 'on_mouse_move'))
 
 #      self._timer = app.Timer('auto', connect=self.on_timer, start=True)
 
@@ -294,13 +299,21 @@ class EEGCanvas(app.Canvas):
         self.highEdit.setText(QtCore.QString.number(self.highPass,'f',1))
 
     def mouse_press(self, event):
-        self.oldPos = (event.pos[0], event.pos[1])
+        self.oldPos = (float(event.pos[0])/self.size[0]*2-1, -((float(event.pos[1])/self.size[1])*2-1))
+        # self.oldPos = (event.pos[0], event.pos[1])
         self.dragZoom = True
+        self.update()
+
+    def on_mouse_move(self, event):
+        print "self.size {s}".format(s=self.size)
+        self.newPos = ((float(event.pos[0])/self.size[0])*2-1, -((float(event.pos[1])/self.size[1])*2-1))
+        print self.oldPos
+        print self.newPos
+        #self.posDiff = (self.newPos[0] - self.oldPos[0], self.newPos[1] - self.oldPos[1])
+        #print self.posDiff
+        self.update()
 
     def mouse_release(self, event):
-        self.newPos = (event.pos[0], event.pos[1])
-        self.posDiff = (self.newPos[0] - self.oldPos[0], self.newPos[1] - self.oldPos[1])
-        print self.posDiff
         self.dragZoom = False
         """
         CALL ZOOM IN FUNCTION WITH OLDPOS AND NEWPOS COORDS!
@@ -317,16 +330,25 @@ class EEGCanvas(app.Canvas):
 
     def on_draw(self, event):
         gloo.clear()
+        if (self.dragZoom):
+            #     # self.zoomboxPositions = np.array([ self.oldPos, self.posDiff[1], self.posDiff[0], self.posDiff ])
+            #     # self.progZoom['a_position'] = gloo.VertexBuffer(self.zoomboxPositions.astype(np.float32))
+            xDiff = self.newPos[0]-self.oldPos[0]
+            yDiff = self.newPos[1]-self.oldPos[1]
+            V4 = np.zeros(6, [("position", np.float32, 3)])
+            V4["position"] = np.float32([[self.oldPos[0],self.oldPos[1],0],
+                                                           [self.oldPos[0]+xDiff,self.oldPos[1],0],
+                                                           [self.oldPos[0],self.oldPos[1]+yDiff,0],
+                                                           [self.newPos[0],self.newPos[1],0],
+                                                           [self.newPos[0]-xDiff,self.newPos[1],0],
+                                                           [self.newPos[0],self.newPos[1]-yDiff,0]])
+            self.zoomBoxBuffer.set_data(V4)
+            self.progZoom.draw("triangles")
         V2 = np.zeros(6, [("position", np.float32, 3)])
         V2["position"] = np.float32((np.random.rand(6,3)*2-1))
         self.vertices.set_data(V2)
-
-        self.prog2.draw('triangles')
+        #self.prog2.draw('triangles')
         self.program.draw('line_strip')
-        if self.dragZoom is True:
-            self.zoomboxPositions = np.array([ oldPos, self.posDiff[1], self.posDiff[0], self.posDiff ])
-            self.progZoom['a_position'] = gloo.VertexBuffer(self.zoomboxPositions.astype(np.float32))
-            self.progZoom.draw(gl.GL_TRIANGLE_STRIP)
 
 if __name__ == '__main__':
     c = EEGCanvas()
