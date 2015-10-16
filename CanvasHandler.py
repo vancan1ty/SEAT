@@ -344,10 +344,11 @@ class EEGCanvas(app.Canvas):
                                                            [self.newPos[0],self.newPos[1]-yDiff,0]])
             self.zoomBoxBuffer.set_data(V4)
             self.progZoom.draw("triangles")
-        V2 = np.zeros(6, [("position", np.float32, 3)])
-        V2["position"] = np.float32((np.random.rand(6,3)*2-1))
-        self.vertices.set_data(V2)
-        #self.prog2.draw('triangles')
+        else:
+             V2 = np.zeros(6, [("position", np.float32, 3)])
+             V2["position"] = np.float32((np.random.rand(6,3)*2-1))
+             self.vertices.set_data(V2)
+             self.prog2.draw('triangles')
         self.program.draw('line_strip')
 
 if __name__ == '__main__':
