@@ -315,6 +315,9 @@ class EEGCanvas(app.Canvas):
 
     def mouse_release(self, event):
         self.dragZoom = False
+
+        self.update()
+        print "FALSE"
         """
         CALL ZOOM IN FUNCTION WITH OLDPOS AND NEWPOS COORDS!
         """
