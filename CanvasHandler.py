@@ -305,10 +305,10 @@ class EEGCanvas(app.Canvas):
         self.update()
 
     def on_mouse_move(self, event):
-        print "self.size {s}".format(s=self.size)
+        #print "self.size {s}".format(s=self.size)
         self.newPos = ((float(event.pos[0])/self.size[0])*2-1, -((float(event.pos[1])/self.size[1])*2-1))
-        print self.oldPos
-        print self.newPos
+        #print self.oldPos
+        #print self.newPos
         #self.posDiff = (self.newPos[0] - self.oldPos[0], self.newPos[1] - self.oldPos[1])
         #print self.posDiff
         self.update()
