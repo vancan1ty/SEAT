@@ -8,6 +8,7 @@ from vispy.scene.visuals import Text
 import numpy as np
 import math
 import mne
+import mmap
 import DataProcessing
 from PyQt4 import QtCore
 
@@ -142,6 +143,12 @@ class EEGCanvas(app.Canvas):
         self.numchannels = 0 #maybe don't need this because re-rendering
 
         self.channelPositions = self.getChannelPositions()
+        self.mode = 'select'
+        self.xScale = 1.
+        self.yScale = 1.
+        self.min_scale = 0.00005
+        self.max_scale = 10
+        self.dragZoom = False
 
         self.show()
 
@@ -168,6 +175,8 @@ class EEGCanvas(app.Canvas):
         self.dragZoom = False
         self.oldPos = None
         self.newPos = None
+        self.orig = None
+        self.new = None
         self.posDiff = None
         self.events.mouse_press.connect((self, 'mouse_press'))
         self.events.mouse_release.connect((self, 'mouse_release'))
@@ -181,7 +190,7 @@ class EEGCanvas(app.Canvas):
 
     def loadData(self,filepath):
         self.dSetName = filepath.split("/")[-1]
-        self.rawData = mne.io.read_raw_edf(filepath,preload=True)
+        self.rawData = mne.io.read_raw_edf(str(filepath),preload=True)
         self.setupDataDisplay()
 
     def setupZoom(self,displayData):
@@ -233,6 +242,19 @@ class EEGCanvas(app.Canvas):
         selected in order to zoom.
         """
 
+    def setMode(self, mode):
+        self.mode = mode
+
+    def zoom(self, xFactor, yFactor):
+        # gloo.set_viewport(orig[0], orig[1], size[0], size[1])
+        # self.program['resolution'] = [size[0], size[1]]
+        self.xScale *= xFactor
+        self.yScale *= yFactor
+        self.xScale = max(min(self.xScale, self.max_scale), self.min_scale)
+        self.yScale = max(min(self.yScale, self.max_scale), self.min_scale)
+        self.program["u_scale"] = (self.xScale, self.yScale)
+
+        print " "
 
     def on_resize(self, event):
         gloo.set_viewport(0, 0, *event.physical_size)
@@ -297,15 +319,25 @@ class EEGCanvas(app.Canvas):
 
     def mouse_press(self, event):
         self.oldPos = (float(event.pos[0])/self.size[0]*2-1, -((float(event.pos[1])/self.size[1])*2-1))
-        self.dragZoom = True
+        self.orig = (event.pos[0], event.pos[1])
+        if(self.mode == 'zoom'):
+            self.dragZoom = True
         self.update()
 
     def on_mouse_move(self, event):
         #print "self.size {s}".format(s=self.size)
         self.newPos = ((float(event.pos[0])/self.size[0])*2-1, -((float(event.pos[1])/self.size[1])*2-1))
+        self.new = (event.pos[0], event.pos[1])
         self.update()
 
     def mouse_release(self, event):
+        ## Uncomment to work on zoom
+        # if(self.mode == 'zoom'):
+        #     xDiff = self.new[0]-self.orig[0]
+        #     yDiff = self.new[1]-self.orig[1]
+        #     xFactor = 1. / (float(abs(xDiff)) / float(self.physical_size[0]))
+        #     yFactor = 1. / (float(abs(yDiff)) / float(self.physical_size[1]))
+        #     self.zoom(xFactor, yFactor)
         self.dragZoom = False
         self.update()
         #print self.program['u_size'][0]
@@ -322,7 +354,7 @@ class EEGCanvas(app.Canvas):
 
     def on_draw(self, event):
         gloo.clear()
-        if (self.dragZoom):
+        if (self.dragZoom and self.mode == 'zoom'):
             xDiff = self.newPos[0]-self.oldPos[0]
             yDiff = self.newPos[1]-self.oldPos[1]
             V4 = np.zeros(6, [("position", np.float32, 3)])

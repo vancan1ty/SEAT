@@ -39,11 +39,18 @@ class EpWindow(QtGui.QMainWindow):
         print ch1Spikes[0]
         QtGui.QMessageBox.information(None,"Report","{d} spikes found.".format(d=len(ch1Spikes[0])))
 
+    def setModeSelect(self):
+        self.canvas.setMode('select')
+
+    def setModeZoom(self):
+        self.canvas.setMode('zoom')
+
     def show_about_window(self):
         QtGui.QMessageBox.information(None,"About Epilepsy Modeling","This amazing project\n\nwas created by:\nUtkarsh Garg\nJohnny Farrow\nJustin Jackson\nCurrell Berry\nMichael Long")
 
     def show_file_dialog(self):
         filePath = QtGui.QFileDialog.getOpenFileName(None,"Choose Dataset to Open", ".", "EEG File (*.edf)")
+        print filePath
         self.canvas.loadData(filePath)
         self.populateUICanvas()
 
@@ -136,12 +143,12 @@ class EpWindow(QtGui.QMainWindow):
         grid.setSpacing(10)
         grid.setColumnStretch(8,1)
 
-        lowLbl = QtGui.QLabel('Lowpass (hz)')
+        lowLbl = QtGui.QLabel('Highpass (hz)')
         grid.addWidget(lowLbl, 0, 0)
         self.lowEdit = QtGui.QLineEdit("")
         grid.addWidget(self.lowEdit, 0, 1)
 
-        highLbl = QtGui.QLabel('Highpass (hz)')
+        highLbl = QtGui.QLabel('Lowpass (hz)')
         grid.addWidget(highLbl, 0, 2)
         self.highEdit = QtGui.QLineEdit("")
         grid.addWidget(self.highEdit, 0, 3)
@@ -155,6 +162,13 @@ class EpWindow(QtGui.QMainWindow):
         grid.addWidget(endLbl, 0, 6)
         self.endEdit = QtGui.QLineEdit("")
         grid.addWidget(self.endEdit, 0, 7)
+
+        modeLbl = QtGui.QLabel('Mode:')
+        grid.addWidget(modeLbl, 0, 8)
+        selectButton = QtGui.QPushButton('Select', holderWidget)
+        grid.addWidget(selectButton, 0, 9)
+        zoomButton = QtGui.QPushButton('Zoom', holderWidget)
+        grid.addWidget(zoomButton, 0, 10)
 
         sliderLabel = QtGui.QLabel('Amplitude')
         grid.addWidget(sliderLabel, 1, 0)
@@ -189,6 +203,8 @@ class EpWindow(QtGui.QMainWindow):
         QtCore.QObject.connect(self.lowEdit, QtCore.SIGNAL('editingFinished()'), self.onUpdateTextBoxes)
         QtCore.QObject.connect(self.highEdit, QtCore.SIGNAL('editingFinished()'), self.onUpdateTextBoxes)
         QtCore.QObject.connect(spikeButton, QtCore.SIGNAL('clicked()'), self.runSpikeDetection)
+        QtCore.QObject.connect(selectButton, QtCore.SIGNAL('clicked()'), self.setModeSelect)
+        QtCore.QObject.connect(zoomButton, QtCore.SIGNAL('clicked()'), self.setModeZoom)
 
 
         slider.setValue(self.canvas.storedAmplitude*10)
@@ -200,7 +216,7 @@ class EpWindow(QtGui.QMainWindow):
         self.setGeometry(300, 300, 350, 300)
 
         self.setWindowTitle('Epilepsy Modeling')
-        self.resize(1200, 800)   
+        self.resize(1200, 800)
         self.show()
 
     def onUpdateSliderValue(self, value):
