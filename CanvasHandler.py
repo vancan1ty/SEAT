@@ -215,7 +215,9 @@ class EEGCanvas(app.Canvas):
 
         self.progText = gloo.Program(text_vertex_shader, text_fragment_shader)
         self.fontBMP= vispy.io.imread("ArialSubset32Up.bmp")
-        self.fontTexture =gloo.Texture2D(self.fontBMP,format="rgb")
+        tvar = np.array(self.fontBMP[:,:,0])
+        self.fontBMP=np.dstack((self.fontBMP,tvar))
+        self.fontTexture =gloo.Texture2D(self.fontBMP,format="rgba")
 
         self.textVerticesArr = self.myTextDrawer.computeTextData(-0.5,-0.5,"ABCDEFGHIJKLMNOPQRSTUVWXYZ")
         self.textVertices = gloo.VertexBuffer(self.textVerticesArr)

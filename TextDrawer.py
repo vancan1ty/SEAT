@@ -71,6 +71,7 @@ def computeTextData(x,y,cFWData,fHeight,text):
         charIndex = ord(text[i])-ord(' ')+7
         vSize = fHeight
         size = fHeight  #cFWData[charIndex]
+        #hAdjust = cFWData[charIndex-7]
         vertex_up_left = (x+i*size, y+vSize)
         vertex_up_right = (x+i*size+size, y+vSize)
         vertex_down_right = (x+i*size+size, y)
