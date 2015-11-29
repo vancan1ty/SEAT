@@ -69,7 +69,7 @@ class EpWindow(QtGui.QMainWindow):
     def show_tfr_plot(self):
         DataProcessing.generate_and_plot_waveletAnalysis(self.canvas.rawData,3,self.canvas.startTime,self.canvas.endTime)
 
-    def setupMenus(self):
+    def setupMenus(self, togglePyDock):
         """set up menubar menus"""
         openAction = QtGui.QAction('&Open', self)
         openAction.setShortcut('Ctrl+o')
@@ -106,10 +106,12 @@ class EpWindow(QtGui.QMainWindow):
         editMenu.addAction(copyAction)
         editMenu.addAction(pasteAction)
 
+        togglePyDock.setShortcut("Ctrl-r")
         showToolbarAction = QtGui.QAction('&Show Toolbar?', self)
         showEBAction = QtGui.QAction('&Show Events Browser?', self)
 
         viewMenu = menubar.addMenu('&View')
+        viewMenu.addAction(togglePyDock)
         viewMenu.addAction(showToolbarAction)
         viewMenu.addAction(showEBAction)
 
@@ -140,8 +142,6 @@ class EpWindow(QtGui.QMainWindow):
 
     def initUI(self):
         """create the various UI elements"""
-        #create pulldown menus
-        self.setupMenus()
 
         self.statusBar()
 
@@ -216,15 +216,19 @@ class EpWindow(QtGui.QMainWindow):
         slider.setValue(self.canvas.storedAmplitude*10)
 
         pythonScripter = QIPythonWidget()
-        pyDockWidget = QtGui.QDockWidget("REPL")
+        pyDockWidget = QtGui.QDockWidget("Python REPL")
         pyDockWidget.setWidget(pythonScripter)
         self.addDockWidget(QtCore.Qt.LeftDockWidgetArea,pyDockWidget)
-        #grid.addWidget(pythonScripter, 7, 1, 2, 11)
+        toggleViewPyDock = pyDockWidget.toggleViewAction()
 
         holderWidget.setLayout(grid)
 
         self.setCentralWidget(holderWidget)
         self.statusBar().showMessage("Use File->Open to choose a dataset to open")
+
+        #create pulldown menus
+        self.setupMenus(toggleViewPyDock)
+
         self.setGeometry(50, 50, 350, 300)
 
         self.setWindowTitle('Epilepsy Modeling')
