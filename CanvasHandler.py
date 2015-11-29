@@ -198,7 +198,11 @@ class EEGCanvas(app.Canvas):
         self.displayData = DataProcessing.getDisplayData(self.rawData, self.startTime, self.endTime, self.storedAmplitude, self.lowPass, self.highPass)
         self.setupZoom(self.displayData)
         self.channels = self.rawData.ch_names
-        #print(self.channels)
+        displayChannels = self.channels[1:15]
+        displayPositions = np.linspace(0.95,-1,15)
+        self.positionsToTextMap = {}
+        for i in range(0,len(displayPositions)-1):
+            self.positionsToTextMap[(-0.97,displayPositions[i])]=str(displayChannels[i])
         self.program = gloo.Program(SERIES_VERT_SHADER, SERIES_FRAG_SHADER)
         self.vertices = gloo.VertexBuffer(V)
         self.zoomBoxBuffer = gloo.VertexBuffer(V3)
@@ -219,7 +223,7 @@ class EEGCanvas(app.Canvas):
         self.fontBMP=np.dstack((self.fontBMP,tvar))
         self.fontTexture =gloo.Texture2D(self.fontBMP,format="rgba")
 
-        self.textVerticesArr = self.myTextDrawer.computeTextData(-1,-0.5,"HELLO DAVE, I'M AFRAID...")
+        self.textVerticesArr = self.myTextDrawer.computeTextsData(self.positionsToTextMap)
         self.textVertices = gloo.VertexBuffer(self.textVerticesArr)
         self.progText.bind(self.textVertices)
         self.progText["myTextureSampler"] = self.fontTexture
@@ -314,7 +318,7 @@ class EEGCanvas(app.Canvas):
 
     def on_resize(self, event):
         self.myTextDrawer.onChangeDimensions(event.physical_size[1],event.physical_size[0])
-        self.textVerticesArr = self.myTextDrawer.computeTextData(-1,-0.5,"HELLO DAVE, I'M AFRAID...")
+        self.textVerticesArr = self.myTextDrawer.computeTextsData(self.positionsToTextMap)
         self.textVertices = gloo.VertexBuffer(self.textVerticesArr)
         self.progText.bind(self.textVertices)
         gloo.set_viewport(0, 0, *event.physical_size)
@@ -422,7 +426,7 @@ class EEGCanvas(app.Canvas):
     #     self.update()
 
     def on_draw(self, event):
-        gloo.clear("blue")
+        gloo.clear("black")
         if (self.dragZoom and self.mode == 'zoom'):
             xDiff = self.newPos[0]-self.oldPos[0]
             yDiff = self.newPos[1]-self.oldPos[1]

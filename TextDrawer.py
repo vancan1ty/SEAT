@@ -34,39 +34,22 @@ class TextDrawer():
     def computeTextData(self,x,y,text):
         return computeTextData(x,y,self.fHeight,self.fWidth,text)
 
+    def computeTextsData(self,positionToTextMap):
+        return computeTextsData(positionToTextMap,self.fHeight,self.fWidth)
+
+def computeTextsData(positionToTextMap,fHeight,fWidth):
+    allVerts = []
+    for key, value in positionToTextMap.iteritems():
+        vtData = computeTextData(key[0],key[1],fHeight,fWidth,value)
+        allVerts.append(vtData)
+    return np.concatenate(allVerts,axis=0)
+    
 def computeTextData(x,y,fHeight,fWidth,text):
-    #text = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
-    vertices = np.zeros(len(text)*6+6,[("position",np.float32,2),("uv",np.float32,2)])
-    ypos = y
-    vertex_up_left = (-1,1)
-    vertex_up_right = (0, 1)
-    vertex_down_right = (0, 0)
-    vertex_down_left  = (-1, 0)
-
-    vertices["position"][0]=vertex_up_left
-    vertices["position"][1]=vertex_down_left
-    vertices["position"][2]=vertex_up_right
-
-    vertices["position"][3]=vertex_down_right
-    vertices["position"][4]=vertex_up_right
-    vertices["position"][5]=vertex_down_left
-
-    uv_up_left = (0, 0);
-    uv_up_right = (1, 0);
-    uv_down_right = (1, 1)
-    uv_down_left  = (0, 1)
-
-    vertices["uv"][0]=uv_up_left
-    vertices["uv"][1]=uv_down_left
-    vertices["uv"][2]=uv_up_right
-
-    vertices["uv"][3]=uv_down_right
-    vertices["uv"][4]=uv_up_right
-    vertices["uv"][5]=uv_down_left
+    vertices = np.zeros(len(text)*6,[("position",np.float32,2),("uv",np.float32,2)])
 
     xpos = x
-    for i in range(1,len(text)):
-        charIndex = ord(text[i-1])-ord(' ')+16
+    for i in range(0,len(text)):
+        charIndex = ord(text[i])-ord(' ')+16
         vertex_up_left = (xpos, y+fHeight)
         vertex_up_right = (xpos+fWidth, y+fHeight)
         vertex_down_right = (xpos+fWidth, y)
