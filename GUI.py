@@ -149,12 +149,12 @@ class EpWindow(QtGui.QMainWindow):
         grid.setSpacing(10)
         grid.setColumnStretch(8,1)
 
-        lowLbl = QtGui.QLabel('Highpass (hz)')
+        lowLbl = QtGui.QLabel('Low (hz)')
         grid.addWidget(lowLbl, 0, 0)
         self.lowEdit = QtGui.QLineEdit("")
         grid.addWidget(self.lowEdit, 0, 1)
 
-        highLbl = QtGui.QLabel('Lowpass (hz)')
+        highLbl = QtGui.QLabel('High (hz)')
         grid.addWidget(highLbl, 0, 2)
         self.highEdit = QtGui.QLineEdit("")
         grid.addWidget(self.highEdit, 0, 3)
@@ -170,11 +170,11 @@ class EpWindow(QtGui.QMainWindow):
         grid.addWidget(self.endEdit, 0, 7)
 
         modeLbl = QtGui.QLabel('Mode:')
-        grid.addWidget(modeLbl, 0, 8)
+        grid.addWidget(modeLbl, 0, 9)
         selectButton = QtGui.QPushButton('Select', holderWidget)
-        grid.addWidget(selectButton, 0, 9)
+        grid.addWidget(selectButton, 0, 10)
         zoomButton = QtGui.QPushButton('Zoom', holderWidget)
-        grid.addWidget(zoomButton, 0, 10)
+        grid.addWidget(zoomButton, 0, 11)
 
         sliderLabel = QtGui.QLabel('Amplitude')
         grid.addWidget(sliderLabel, 1, 0)
@@ -201,7 +201,7 @@ class EpWindow(QtGui.QMainWindow):
 
         #scroller = QtGui.QScrollArea();
         #scroller.setWidget(c.native)
-        grid.addWidget(self.canvas.native, 1, 1, 6, 9)
+        grid.addWidget(self.canvas.native, 1, 1, 6, 11)
 
         QtCore.QObject.connect(slider, QtCore.SIGNAL('valueChanged(int)'), self.onUpdateSliderValue)
         QtCore.QObject.connect(self.startEdit, QtCore.SIGNAL('editingFinished()'), self.onStartEndChanged)
