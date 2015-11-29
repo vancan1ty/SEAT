@@ -22,7 +22,7 @@ START_TIME = 0.0
 END_TIME = 6.0
 
 text_vertex_shader = """
-#version 150 core
+#version 120
 
 // Input vertex data, different for all executions of this shader.
 attribute vec2 position;
@@ -40,19 +40,16 @@ void main(){
 }
 """
 text_fragment_shader = """
-#version 150 core
+#version 120
 
 // Interpolated values from the vertex shaders
-in vec2 UV;
-
-// Ouput data
-out vec4 color;
+varying vec2 UV;
 
 // Values that stay constant for the whole mesh.
 uniform sampler2D myTextureSampler;
 
 void main(){
-              color = texture( myTextureSampler, UV );
+              gl_FragColor = texture2D( myTextureSampler, UV );
 }
 """
 
