@@ -193,9 +193,8 @@ class EEGCanvas(app.Canvas):
 
         self.show()
 
-	def selectChannels(self):
-		print self.channels
-
+    def selectChannels(self):
+        print self.channels
 
     def setupDataDisplay(self):
         """requires that you have already set a number of things on self"""
