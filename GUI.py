@@ -24,6 +24,7 @@ import DataProcessing
 import mne
 from mne.time_frequency import tfr_multitaper, tfr_stockwell, tfr_morlet
 import numpy as np
+from QIPythonWidget import QIPythonWidget
 
 SAMPLING_RATE=256
 START_TIME = 0.0
@@ -213,6 +214,12 @@ class EpWindow(QtGui.QMainWindow):
         QtCore.QObject.connect(zoomButton, QtCore.SIGNAL('clicked()'), self.setModeZoom)
 
         slider.setValue(self.canvas.storedAmplitude*10)
+
+        pythonScripter = QIPythonWidget()
+        pyDockWidget = QtGui.QDockWidget("REPL")
+        pyDockWidget.setWidget(pythonScripter)
+        self.addDockWidget(QtCore.Qt.LeftDockWidgetArea,pyDockWidget)
+        #grid.addWidget(pythonScripter, 7, 1, 2, 11)
 
         holderWidget.setLayout(grid)
 
