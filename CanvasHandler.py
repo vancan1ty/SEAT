@@ -219,7 +219,7 @@ class EEGCanvas(app.Canvas):
         self.fontBMP=np.dstack((self.fontBMP,tvar))
         self.fontTexture =gloo.Texture2D(self.fontBMP,format="rgba")
 
-        self.textVerticesArr = self.myTextDrawer.computeTextData(-1,-0.5," !\"#$%&'()*+,-./0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ")
+        self.textVerticesArr = self.myTextDrawer.computeTextData(-1,-0.5,"HELLO DAVE, I'M AFRAID...")
         self.textVertices = gloo.VertexBuffer(self.textVerticesArr)
         self.progText.bind(self.textVertices)
         self.progText["myTextureSampler"] = self.fontTexture
@@ -314,7 +314,7 @@ class EEGCanvas(app.Canvas):
 
     def on_resize(self, event):
         self.myTextDrawer.onChangeDimensions(event.physical_size[1],event.physical_size[0])
-        self.textVerticesArr = self.myTextDrawer.computeTextData(-1,-0.5," !\"#$%&'()*+,-./0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ")
+        self.textVerticesArr = self.myTextDrawer.computeTextData(-1,-0.5,"HELLO DAVE, I'M AFRAID...")
         self.textVertices = gloo.VertexBuffer(self.textVerticesArr)
         self.progText.bind(self.textVertices)
         gloo.set_viewport(0, 0, *event.physical_size)

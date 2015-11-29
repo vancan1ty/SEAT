@@ -28,7 +28,7 @@ class TextDrawer():
         return (2.0/viewHeight)*16;
 
     def computeFontWidth(self,fontHeight):
-        return (13.0/16.0)*fontHeight;
+        return (16.0/16.0)*fontHeight;
 
     #np.array([(x,y,u,v),(x,y,u,v)])
     def computeTextData(self,x,y,text):
@@ -64,12 +64,14 @@ def computeTextData(x,y,fHeight,fWidth,text):
     vertices["uv"][4]=uv_up_right
     vertices["uv"][5]=uv_down_left
 
+    xpos = x
     for i in range(1,len(text)):
-        charIndex = ord(text[i-1])-ord(' ')
-        vertex_up_left = (x+i*fWidth, y+fHeight)
-        vertex_up_right = (x+i*fWidth+fWidth, y+fHeight)
-        vertex_down_right = (x+i*fWidth+fWidth, y)
-        vertex_down_left  = ( x+i*fWidth, y)
+        charIndex = ord(text[i-1])-ord(' ')+16
+        vertex_up_left = (xpos, y+fHeight)
+        vertex_up_right = (xpos+fWidth, y+fHeight)
+        vertex_down_right = (xpos+fWidth, y)
+        vertex_down_left  = (xpos, y)
+        xpos+=fWidth*0.7
 
         vertices["position"][i*6]=vertex_up_left
         vertices["position"][i*6+1]=vertex_down_left
@@ -79,12 +81,12 @@ def computeTextData(x,y,fHeight,fWidth,text):
         vertices["position"][i*6+4]=vertex_up_right
         vertices["position"][i*6+5]=vertex_down_left
 
-        uv_x = (charIndex%19)/19.0
-        uv_y = 1-(charIndex/19)/19.0
+        uv_x = (charIndex%16)/16.0
+        uv_y = 1-(charIndex/16)/16.0
 
-        uv_up_left = (uv_x,   1.0 - (uv_y + 1.0/19.0)  );
-        uv_up_right = (uv_x+1.0/19.0,    1.0 - (uv_y + 1.0/19.0)  );
-        uv_down_right = (uv_x+1.0/19.0,  1.0 - uv_y )
+        uv_up_left = (uv_x,   1.0 - (uv_y + 1.0/16.0)  );
+        uv_up_right = (uv_x+1.0/16.0,    1.0 - (uv_y + 1.0/16.0)  );
+        uv_down_right = (uv_x+1.0/16.0,  1.0 - uv_y )
         uv_down_left  = (uv_x,  1.0 - uv_y )
 
         vertices["uv"][i*6]=uv_up_left
