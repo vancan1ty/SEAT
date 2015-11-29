@@ -17,11 +17,12 @@ from IPython.lib import guisupport
 class QIPythonWidget(RichIPythonWidget):
     """ Convenience class for a live IPython console widget. We can replace the standard banner using the customBanner argument"""
     def __init__(self,customBanner=None,*args,**kwargs):
-        if customBanner!=None: self.banner=customBanner
         super(QIPythonWidget, self).__init__(*args,**kwargs)
         self.kernel_manager = kernel_manager = QtInProcessKernelManager()
         kernel_manager.start_kernel()
         kernel_manager.kernel.gui = 'qt4'
+        if customBanner!=None: kernel_manager.kernel.shell.banner1=customBanner
+        print kernel_manager.kernel.shell.banner
         self.kernel_client = kernel_client = self._kernel_manager.client()
         kernel_client.start_channels()
 

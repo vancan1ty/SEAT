@@ -30,6 +30,7 @@ SAMPLING_RATE=256
 START_TIME = 0.0
 END_TIME = 6.0
 
+
 class EpWindow(QtGui.QMainWindow):
 
     def __init__(self):
@@ -40,11 +41,13 @@ class EpWindow(QtGui.QMainWindow):
         self.canvas.loadData(filePath)
         self.populateUICanvas()
 
+
     def runSpikeDetection(self):
         """runs stupid spike detector on only 1st channel"""
         ch1Spikes = DataProcessing.stupidIdentifySpikes(self.canvas.rawData[1,:][0],cutoff=self.thresholdEdit.text().toDouble()[0])
         print ch1Spikes[0]
         QtGui.QMessageBox.information(None,"Report","{d} spikes found.".format(d=len(ch1Spikes[0])))
+
 
     def setModeSelect(self):
         self.canvas.setMode('select')
@@ -215,10 +218,22 @@ class EpWindow(QtGui.QMainWindow):
 
         slider.setValue(self.canvas.storedAmplitude*10)
 
-        pythonScripter = QIPythonWidget()
-        pythonScripter.pushVariables({"window": self})
+        self.pythonScripter = QIPythonWidget(customBanner=
+"""
+Welcome to EModeling
+All functionality of python and this application is available through this command line
+the variable 'window' contains a reference to your current window
+here are some commands to get you started:
+window.canvas.quickTextDraw('hello world',0,0); window.canvas.update();
+window.canvas.displayData
+
+happy scripting
+""")
+        self.pythonScripter.pushVariables({"window": self})
+        #self.pythonScripter.executeCommand(printHelpText)
+        
         pyDockWidget = QtGui.QDockWidget("Python REPL")
-        pyDockWidget.setWidget(pythonScripter)
+        pyDockWidget.setWidget(self.pythonScripter)
         self.addDockWidget(QtCore.Qt.LeftDockWidgetArea,pyDockWidget)
         toggleViewPyDock = pyDockWidget.toggleViewAction()
 
@@ -236,10 +251,12 @@ class EpWindow(QtGui.QMainWindow):
         self.resize(1200, 700)
         self.show()
 
+
     def onUpdateSliderValue(self, value):
         rValue = value/10.0
         self.sliderValue.setText(str(rValue))
         self.canvas.onAmplitudeChanged(rValue)
+
 
     def onUpdateTextBoxes(self):
         lowPassT = self.lowEdit.text().toDouble()
@@ -258,3 +275,4 @@ def main():
 
 if __name__ == '__main__':
     main()
+

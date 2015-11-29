@@ -32,7 +32,7 @@ class TextDrawer():
     def updateFontDimensions(self):
         nfHeight = (2.0/self.viewHeight)*16;
         nfWidth =  (2.0/self.viewWidth)*16; 
-        print "nfHeight: {a}, nfWidth: {b}".format(a=nfHeight,b=nfWidth)
+        # print "nfHeight: {a}, nfWidth: {b}".format(a=nfHeight,b=nfWidth)
         self.fHeight = nfHeight
         self.fWidth = nfWidth
 

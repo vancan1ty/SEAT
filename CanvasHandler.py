@@ -325,13 +325,11 @@ class EEGCanvas(app.Canvas):
         gloo.set_viewport(0, 0, *event.physical_size)
 
     def quickTextDraw(self,text,x,y):
-        self.myTextDrawer.onChangeDimensions(self.physical_size[1],self.physical_size[0])
-        self.textVerticesArr = self.myTextDrawer.computeTextData(x,y,text)
+        self.positionsToTextMap[(x,y)]=text
+        self.textVerticesArr = self.myTextDrawer.computeTextsData(self.positionsToTextMap)
         self.textVertices = gloo.VertexBuffer(self.textVerticesArr)
         self.progText.bind(self.textVertices)
-        self.progText.draw("triangles")
         
-
     # def on_mouse_wheel(self, event):
     #     dx = np.sign(event.delta[1]) * .05
     #     scale_x, scale_y = self.program['u_scale']
