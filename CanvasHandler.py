@@ -4,10 +4,10 @@
 import sip
 sip.setapi('QString', 2)
 
+import vispy
+import vispy.io
 from vispy import gloo
 from vispy import app
-from vispy import scene
-from vispy.scene.visuals import Text
 import numpy as np
 import math
 import mne
@@ -15,10 +15,48 @@ import mmap
 import DataProcessing
 from PyQt4 import QtCore
 from PyQt4 import QtGui
+from TextDrawer import TextDrawer
 
 SAMPLING_RATE=256
 START_TIME = 0.0
 END_TIME = 6.0
+
+text_vertex_shader = """
+#version 150
+
+// Input vertex data, different for all executions of this shader.
+attribute vec2 position;
+attribute vec2 uv;
+
+// Output data ; will be interpolated for each fragment.
+varying vec2 UV;
+
+void main(){
+
+	gl_Position =  vec4(position,0,1);
+	
+	// UV of the vertex. No special space for this one.
+	UV = uv;
+}
+"""
+text_fragment_shader = """
+#version 150
+
+// Interpolated values from the vertex shaders
+in vec2 UV;
+
+// Ouput data
+out vec4 color;
+
+// Values that stay constant for the whole mesh.
+uniform sampler2D myTextureSampler;
+
+void main(){
+              color = texture( myTextureSampler, UV );
+}
+"""
+
+
 
 # V["position"] = [[ -0.5, 1, 0], [-0.5, -1, 0],
 #                            [0,1, 0],      [0,-1,0],
@@ -38,7 +76,7 @@ void main()
 }
 """
 
-prog2_vertex_shader = """
+progAnnotations_vertex_shader = """
 attribute vec3 position;
 void main()
 {
@@ -46,7 +84,7 @@ void main()
 }
 """
 
-prog2_fragment_shader = """
+progAnnotations_fragment_shader = """
 void main()
 {
     gl_FragColor = vec4(0.0, 0.5, 0.0, 0.1);
@@ -160,20 +198,33 @@ class EEGCanvas(app.Canvas):
         self.displayData = DataProcessing.getDisplayData(self.rawData, self.startTime, self.endTime, self.storedAmplitude, self.lowPass, self.highPass)
         self.setupZoom(self.displayData)
         self.channels = self.rawData.ch_names
-        self.canvas = scene.SceneCanvas(keys='interactive')
         #print(self.channels)
         self.program = gloo.Program(SERIES_VERT_SHADER, SERIES_FRAG_SHADER)
         self.vertices = gloo.VertexBuffer(V)
         self.zoomBoxBuffer = gloo.VertexBuffer(V3)
-        self.prog2 = gloo.Program(prog2_vertex_shader, prog2_fragment_shader)
-        self.prog2.bind(self.vertices)
+        self.progAnnotations = gloo.Program(progAnnotations_vertex_shader, progAnnotations_fragment_shader)
+        self.progAnnotations.bind(self.vertices)
 
-        self.progZoom = gloo.Program(prog2_vertex_shader, zoombox_fragment_shader)
+        self.progZoom = gloo.Program(progAnnotations_vertex_shader, zoombox_fragment_shader)
         self.progZoom.bind(self.zoomBoxBuffer)
 
         self.setupZoomStep2()
+
+        self.myTextDrawer = TextDrawer(self.physical_size[1],self.physical_size[0])
+        print "height " + str(self.physical_size[1])
+
+        self.progText = gloo.Program(text_vertex_shader, text_fragment_shader)
+        self.fontBMP= vispy.io.imread("ArialSubset32Up.bmp")
+        self.fontTexture =gloo.Texture2D(self.fontBMP,format="rgb")
+
+        self.textVerticesArr = self.myTextDrawer.computeTextData(-0.5,-0.5,"ABCDEFGHIJKLMNOPQRSTUVWXYZ")
+        self.textVertices = gloo.VertexBuffer(self.textVerticesArr)
+        self.progText.bind(self.textVertices)
+        self.progText["myTextureSampler"] = self.fontTexture
+
         gloo.set_viewport(0, 0, *self.physical_size)
         self.updateTextBoxes()
+
 
         self.dragZoom = False
         self.oldPos = None
@@ -260,7 +311,19 @@ class EEGCanvas(app.Canvas):
         print " "
 
     def on_resize(self, event):
+        self.myTextDrawer.onChangeDimensions(event.physical_size[1],event.physical_size[0])
+        self.textVerticesArr = self.myTextDrawer.computeTextData(-0.5,-0.5,"ABCDEFGHIJKLMNOPQRSTUVWXYZ")
+        self.textVertices = gloo.VertexBuffer(self.textVerticesArr)
+        self.progText.bind(self.textVertices)
         gloo.set_viewport(0, 0, *event.physical_size)
+
+    def quickTextDraw(self,text,x,y):
+        self.myTextDrawer.onChangeDimensions(self.physical_size[1],self.physical_size[0])
+        self.textVerticesArr = self.myTextDrawer.computeTextData(x,y,text)
+        self.textVertices = gloo.VertexBuffer(self.textVerticesArr)
+        self.progText.bind(self.textVertices)
+        self.progText.draw("triangles")
+        
 
     # def on_mouse_wheel(self, event):
     #     dx = np.sign(event.delta[1]) * .05
@@ -357,7 +420,7 @@ class EEGCanvas(app.Canvas):
     #     self.update()
 
     def on_draw(self, event):
-        gloo.clear()
+        gloo.clear("blue")
         if (self.dragZoom and self.mode == 'zoom'):
             xDiff = self.newPos[0]-self.oldPos[0]
             yDiff = self.newPos[1]-self.oldPos[1]
@@ -374,8 +437,9 @@ class EEGCanvas(app.Canvas):
              V2 = np.zeros(6, [("position", np.float32, 3)])
              V2["position"] = np.float32((np.random.rand(6,3)*2-1))
              self.vertices.set_data(V2)
-             #self.prog2.draw('triangles')
+             #self.progAnnotations.draw('triangles')
         self.program.draw('line_strip')
+        self.progText.draw("triangles")
 
 if __name__ == '__main__':
     c = EEGCanvas()
