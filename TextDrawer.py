@@ -13,38 +13,46 @@ class TextDrawer():
     #cFWData = [] #"corrected" font width data, adjusted for screen size
     fHeight = 0
     fWidth = 0
+    viewHeight = -1
+    viewWidth = -1
 
     def __init__(self,viewHeight,viewWidth):
         #self.fwData = readInFontsWidthData()
         #self.cFWData = self.adjustFontWidthData(viewWidth)
-        self.fHeight = self.computeFontHeight(viewHeight)
+        self.viewHeight = viewHeight
+        self.viewWidth = viewWidth
+        self.fHeight = self.computeFontHeight()
+        self.fWidth = self.computeFontWidth()
 
     def onChangeDimensions(self, viewHeight, viewWidth):
-        self.fHeight = self.computeFontHeight(viewHeight)
-        self.fWidth = self.computeFontWidth(self.fHeight)
+        self.viewHeight = viewHeight
+        self.viewWidth = viewWidth
+        self.fHeight = self.computeFontHeight()
+        self.fWidth = self.computeFontWidth()
 
     #think I will further have to divide w and h by 2
-    def computeFontHeight(self,viewHeight):
-        return (2.0/viewHeight)*16;
+    def computeFontHeight(self):
+        return (2.0/self.viewHeight)*16;
 
-    def computeFontWidth(self,fontHeight):
-        return (16.0/16.0)*fontHeight;
+    def computeFontWidth(self):
+        return (16.0/16.0)*self.fHeight;
 
     #np.array([(x,y,u,v),(x,y,u,v)])
     def computeTextData(self,x,y,text):
-        return computeTextData(x,y,self.fHeight,self.fWidth,text)
+        return computeTextData(x,y,self.fHeight,self.fWidth,text,
+                               self.viewHeight,self.viewWidth)
 
     def computeTextsData(self,positionToTextMap):
-        return computeTextsData(positionToTextMap,self.fHeight,self.fWidth)
+        return computeTextsData(positionToTextMap,self.fHeight,self.fWidth,self.viewHeight,self.viewWidth)
 
-def computeTextsData(positionToTextMap,fHeight,fWidth):
+def computeTextsData(positionToTextMap,fHeight,fWidth,viewHeight,viewWidth):
     allVerts = []
     for key, value in positionToTextMap.iteritems():
-        vtData = computeTextData(key[0],key[1],fHeight,fWidth,value)
+        vtData = computeTextData(key[0],key[1],fHeight,fWidth,value,viewHeight,viewWidth)
         allVerts.append(vtData)
     return np.concatenate(allVerts,axis=0)
     
-def computeTextData(x,y,fHeight,fWidth,text):
+def computeTextData(x,y,fHeight,fWidth,text,viewHeight,viewWidth):
     vertices = np.zeros(len(text)*6,[("position",np.float32,2),("uv",np.float32,2)])
 
     xpos = x

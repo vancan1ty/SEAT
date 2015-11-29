@@ -22,7 +22,7 @@ START_TIME = 0.0
 END_TIME = 6.0
 
 text_vertex_shader = """
-#version 150
+#version 150 core
 
 // Input vertex data, different for all executions of this shader.
 attribute vec2 position;
@@ -40,7 +40,7 @@ void main(){
 }
 """
 text_fragment_shader = """
-#version 150
+#version 150 core
 
 // Interpolated values from the vertex shaders
 in vec2 UV;
@@ -72,7 +72,7 @@ V3["position"] = np.float32([[-0.2,0.2,0],[0.2,0.2,0],[-0.2,-0.2,0],
 zoombox_fragment_shader = """
 void main()
 {
-    gl_FragColor = vec4(0.7, 0.7, 0.0, 0.1);
+    gl_FragColor = vec4(0.0, 0.7, 0.0, 0.2);
 }
 """
 
@@ -169,6 +169,9 @@ class EEGCanvas(app.Canvas):
     """ defines a class which encapsulates all information and control relating to the display of EEG data on the canvas
 
    """
+    myTextDrawer = None
+    rawData= None
+
     def __init__(self, startEdit, endEdit, lowEdit, highEdit):
         app.Canvas.__init__(self, title='Use your wheel to scroll!',
                             keys='interactive')
@@ -317,10 +320,11 @@ class EEGCanvas(app.Canvas):
         print " "
 
     def on_resize(self, event):
-        self.myTextDrawer.onChangeDimensions(event.physical_size[1],event.physical_size[0])
-        self.textVerticesArr = self.myTextDrawer.computeTextsData(self.positionsToTextMap)
-        self.textVertices = gloo.VertexBuffer(self.textVerticesArr)
-        self.progText.bind(self.textVertices)
+        if (self.myTextDrawer):
+            self.myTextDrawer.onChangeDimensions(event.physical_size[1],event.physical_size[0])
+            self.textVerticesArr = self.myTextDrawer.computeTextsData(self.positionsToTextMap)
+            self.textVertices = gloo.VertexBuffer(self.textVerticesArr)
+            self.progText.bind(self.textVertices)
         gloo.set_viewport(0, 0, *event.physical_size)
 
     def quickTextDraw(self,text,x,y):
@@ -358,10 +362,11 @@ class EEGCanvas(app.Canvas):
 
     def onAmplitudeChanged(self, nAmplitude):
         self.storedAmplitude = nAmplitude;
-        self.displayData = DataProcessing.getDisplayData(self.rawData, self.startTime, self.endTime, self.storedAmplitude, self.lowPass, self.highPass)
-        self.signalData = np.float32(10000*np.array(self.displayData[0]))
-        self.program['a_position'] = self.signalData.reshape(-1, 1)
-        self.update()
+        if(self.rawData):
+            self.displayData = DataProcessing.getDisplayData(self.rawData, self.startTime, self.endTime, self.storedAmplitude, self.lowPass, self.highPass)
+            self.signalData = np.float32(10000*np.array(self.displayData[0]))
+            self.program['a_position'] = self.signalData.reshape(-1, 1)
+            self.update()
 
     def onTextBoxesChanged(self, lowPass, highPass):
         self.lowPass = lowPass;
@@ -423,6 +428,7 @@ class EEGCanvas(app.Canvas):
     #     y[:, -k:] = amplitudes * np.random.randn(m, k)
 
     #     self.program['a_position'].set_data(y.ravel().astype(np.float32))
+
     #     self.update()
 
     def on_draw(self, event):
