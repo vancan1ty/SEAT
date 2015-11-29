@@ -21,21 +21,20 @@ class TextDrawer():
         #self.cFWData = self.adjustFontWidthData(viewWidth)
         self.viewHeight = viewHeight
         self.viewWidth = viewWidth
-        self.fHeight = self.computeFontHeight()
-        self.fWidth = self.computeFontWidth()
+        self.updateFontDimensions()
 
     def onChangeDimensions(self, viewHeight, viewWidth):
         self.viewHeight = viewHeight
         self.viewWidth = viewWidth
-        self.fHeight = self.computeFontHeight()
-        self.fWidth = self.computeFontWidth()
+        self.updateFontDimensions()
 
     #think I will further have to divide w and h by 2
-    def computeFontHeight(self):
-        return (2.0/self.viewHeight)*16;
-
-    def computeFontWidth(self):
-        return (16.0/16.0)*self.fHeight;
+    def updateFontDimensions(self):
+        nfHeight = (2.0/self.viewHeight)*16;
+        nfWidth =  (2.0/self.viewWidth)*16; 
+        print "nfHeight: {a}, nfWidth: {b}".format(a=nfHeight,b=nfWidth)
+        self.fHeight = nfHeight
+        self.fWidth = nfWidth
 
     #np.array([(x,y,u,v),(x,y,u,v)])
     def computeTextData(self,x,y,text):
