@@ -34,7 +34,7 @@ varying vec2 UV;
 void main(){
 
 	gl_Position =  vec4(position,0,1);
-	
+
 	// UV of the vertex. No special space for this one.
 	UV = uv;
 }
@@ -193,11 +193,16 @@ class EEGCanvas(app.Canvas):
 
         self.show()
 
+	def selectChannels(self):
+		print self.channels
+
+
     def setupDataDisplay(self):
         """requires that you have already set a number of things on self"""
         self.displayData = DataProcessing.getDisplayData(self.rawData, self.startTime, self.endTime, self.storedAmplitude, self.lowPass, self.highPass)
         self.setupZoom(self.displayData)
         self.channels = self.rawData.ch_names
+        self.selectChannels()
         displayChannels = self.channels[1:15]
         displayPositions = np.linspace(0.9,-1.1,15)
         self.positionsToTextMap = {}
@@ -329,7 +334,7 @@ class EEGCanvas(app.Canvas):
         self.textVerticesArr = self.myTextDrawer.computeTextsData(self.positionsToTextMap)
         self.textVertices = gloo.VertexBuffer(self.textVerticesArr)
         self.progText.bind(self.textVertices)
-        
+
     # def on_mouse_wheel(self, event):
     #     dx = np.sign(event.delta[1]) * .05
     #     scale_x, scale_y = self.program['u_scale']
