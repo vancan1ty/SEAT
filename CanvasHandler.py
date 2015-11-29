@@ -199,7 +199,7 @@ class EEGCanvas(app.Canvas):
         self.setupZoom(self.displayData)
         self.channels = self.rawData.ch_names
         displayChannels = self.channels[1:15]
-        displayPositions = np.linspace(0.95,-1,15)
+        displayPositions = np.linspace(0.9,-1.1,15)
         self.positionsToTextMap = {}
         for i in range(0,len(displayPositions)-1):
             self.positionsToTextMap[(-0.97,displayPositions[i])]=str(displayChannels[i])
