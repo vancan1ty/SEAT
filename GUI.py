@@ -10,6 +10,12 @@ BUGS:
 1. Can't handle large datasets!
 
 """
+import os
+os.environ['QT_API'] = 'pyqt'
+import sip
+sip.setapi("QString", 2)
+sip.setapi("QVariant", 2)
+
 import sys
 from PyQt4 import QtGui
 from PyQt4 import QtCore
@@ -206,17 +212,16 @@ class EpWindow(QtGui.QMainWindow):
         QtCore.QObject.connect(selectButton, QtCore.SIGNAL('clicked()'), self.setModeSelect)
         QtCore.QObject.connect(zoomButton, QtCore.SIGNAL('clicked()'), self.setModeZoom)
 
-
         slider.setValue(self.canvas.storedAmplitude*10)
 
         holderWidget.setLayout(grid)
 
         self.setCentralWidget(holderWidget)
         self.statusBar().showMessage("Use File->Open to choose a dataset to open")
-        self.setGeometry(300, 300, 350, 300)
+        self.setGeometry(50, 50, 350, 300)
 
         self.setWindowTitle('Epilepsy Modeling')
-        self.resize(1200, 800)
+        self.resize(1200, 700)
         self.show()
 
     def onUpdateSliderValue(self, value):

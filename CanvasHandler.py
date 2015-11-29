@@ -1,6 +1,9 @@
 # derived from vispy example.
 #CB 10/13/2015
 
+import sip
+sip.setapi('QString', 2)
+
 from vispy import gloo
 from vispy import app
 from vispy import scene
@@ -11,11 +14,11 @@ import mne
 import mmap
 import DataProcessing
 from PyQt4 import QtCore
+from PyQt4 import QtGui
 
 SAMPLING_RATE=256
 START_TIME = 0.0
 END_TIME = 6.0
-
 
 # V["position"] = [[ -0.5, 1, 0], [-0.5, -1, 0],
 #                            [0,1, 0],      [0,-1,0],
@@ -312,16 +315,17 @@ class EEGCanvas(app.Canvas):
 
     def updateTextBoxes(self):
         #print "self.startTime: {s}".format(s=self.startTime)
-        self.startEdit.setText(QtCore.QString.number(self.startTime,'f',1))
-        self.endEdit.setText(QtCore.QString.number(self.endTime,'f',1))
-        self.lowEdit.setText(QtCore.QString.number(self.lowPass,'f',1))
-        self.highEdit.setText(QtCore.QString.number(self.highPass,'f',1))
+        self.startEdit.setText(str(self.startTime))
+        self.endEdit.setText(str(self.endTime))
+        self.lowEdit.setText(str(self.lowPass))
+        self.highEdit.setText(str(self.highPass))
 
     def mouse_press(self, event):
         self.oldPos = (float(event.pos[0])/self.size[0]*2-1, -((float(event.pos[1])/self.size[1])*2-1))
         self.orig = (event.pos[0], event.pos[1])
         if(self.mode == 'zoom'):
             self.dragZoom = True
+
         self.update()
 
     def on_mouse_move(self, event):
