@@ -216,6 +216,7 @@ class EpWindow(QtGui.QMainWindow):
         slider.setValue(self.canvas.storedAmplitude*10)
 
         pythonScripter = QIPythonWidget()
+        pythonScripter.pushVariables({"window": self})
         pyDockWidget = QtGui.QDockWidget("Python REPL")
         pyDockWidget.setWidget(pythonScripter)
         self.addDockWidget(QtCore.Qt.LeftDockWidgetArea,pyDockWidget)
