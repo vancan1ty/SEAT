@@ -19,6 +19,7 @@ sip.setapi("QVariant", 2)
 import sys
 from PyQt4 import QtGui
 from PyQt4 import QtCore
+from PyQt4.QtGui import QListWidgetItem, QListWidget, QDialog
 import CanvasHandler
 import DataProcessing
 import mne
@@ -72,6 +73,16 @@ class EpWindow(QtGui.QMainWindow):
     def show_tfr_plot(self):
         DataProcessing.generate_and_plot_waveletAnalysis(self.canvas.rawData,3,self.canvas.startTime,self.canvas.endTime)
 
+    def select_channels(self):
+        window = QDialog()
+        select = QListWidget(window)
+        channels = self.canvas.channels
+        for i in range(0,len(channels)-1):
+            item = QListWidgetItem(channels[i])
+            select.addItem(item)
+
+        window.show()
+
     def setupMenus(self, togglePyDock):
         """set up menubar menus"""
         openAction = QtGui.QAction('&Open', self)
@@ -118,10 +129,13 @@ class EpWindow(QtGui.QMainWindow):
         viewMenu.addAction(showToolbarAction)
         viewMenu.addAction(showEBAction)
 
+        scAction = QtGui.QAction('&Select Channels', self)
+        scAction.triggered.connect(self.select_channels)
         rcAction = QtGui.QAction('&Raw Channels', self)
         avgAction = QtGui.QAction('&Channels vs Avg', self)
         bananaAction = QtGui.QAction('&Banana View', self)
         montageSelect = viewMenu.addMenu("&Select View")
+        montageSelect.addAction(scAction)
         montageSelect.addAction(rcAction)
         montageSelect.addAction(avgAction)
         montageSelect.addAction(bananaAction)
@@ -231,7 +245,7 @@ happy scripting
 """)
         self.pythonScripter.pushVariables({"window": self})
         #self.pythonScripter.executeCommand(printHelpText)
-        
+
         pyDockWidget = QtGui.QDockWidget("Python REPL")
         pyDockWidget.setWidget(self.pythonScripter)
         self.addDockWidget(QtCore.Qt.LeftDockWidgetArea,pyDockWidget)
@@ -275,4 +289,3 @@ def main():
 
 if __name__ == '__main__':
     main()
-
