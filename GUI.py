@@ -74,23 +74,26 @@ class EpWindow(QtGui.QMainWindow):
     def show_tfr_plot(self):
         DataProcessing.generate_and_plot_waveletAnalysis(self.canvas.rawData,3,self.canvas.startTime,self.canvas.endTime)
 
-    def select_channels(self):
-        dialog = QtGui.QDialog(self)
-        self.select = QtGui.QListWidget()
-        self.select.setSelectionMode(QtGui.QAbstractItemView.ExtendedSelection)
+    def buildChannelSelector(self):
+        dialog = QtGui.QDockWidget("Select Channels")
+
+        channelSelector = QtGui.QListWidget()
+        channelSelector.setSelectionMode(QtGui.QAbstractItemView.ExtendedSelection)
         pushButtonOK = QtGui.QPushButton()
-        pushButtonOK.setText("OK")
+        pushButtonOK.setText("Update")
         pushButtonOK.clicked.connect(self.on_pushButtonOK_clicked)
         channels = self.canvas.channels
         for i in range(0,len(channels)-1):
             item = QtGui.QListWidgetItem(channels[i])
-            self.select.addItem(item)
+            channelSelector.addItem(item)
 
         layoutVertical = QtGui.QVBoxLayout()
         dialog.setLayout(layoutVertical)
-        layoutVertical.addWidget(pushButtonOK)
         layoutVertical.addWidget(self.select)
-        dialog.show()
+        layoutVertical.addWidget(pushButtonOK)
+
+        self.addDockWidget(QtCore.Qt.LeftDockWidgetArea,dialog)
+        toggleChannelSelector = dialog.toggleViewAction()
 
     def on_pushButtonOK_clicked(self):
         self.indices = []
@@ -137,8 +140,8 @@ class EpWindow(QtGui.QMainWindow):
         editMenu.addAction(copyAction)
         editMenu.addAction(pasteAction)
 
-        scAction = QtGui.QAction('&Select Channels', self)
-        scAction.triggered.connect(self.select_channels)
+        #scAction = QtGui.QAction('&Select Channels', self)
+        #scAction.triggered.connect(self.buildChannelSelector)
         togglePyDock.setShortcut("Ctrl-r")
         showToolbarAction = QtGui.QAction('&Show Toolbar?', self)
         showEBAction = QtGui.QAction('&Show Events Browser?', self)
@@ -271,6 +274,9 @@ happy scripting
         pyDockWidget.setWidget(self.pythonScripter)
         self.addDockWidget(QtCore.Qt.LeftDockWidgetArea,pyDockWidget)
         toggleViewPyDock = pyDockWidget.toggleViewAction()
+
+
+
 
         holderWidget.setLayout(grid)
 
