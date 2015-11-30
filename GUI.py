@@ -48,10 +48,15 @@ class EpWindow(QtGui.QMainWindow):
 
     def runSpikeDetection(self):
         """runs stupid spike detector on only 1st channel"""
-        if self.ch1Spikes is None:
-            self.ch1Spikes = peakFinder.randomLists()
-            QtGui.QMessageBox.information(None,"Report","{d} spikes found.".format(d=len(self.ch1Spikes[0])))
-        print self.ch1Spikes
+        channelIndex = self.canvas.indices[0]
+        self.rawCh1Spikes = DataProcessing.stupidIdentifySpikes(self.canvas.rawData[channelIndex,:][0],cutoff=float(self.thresholdEdit.text()))
+        self.ch1Spikes = self.canvas.rawData.index_as_time(self.rawCh1Spikes)
+        self.canvas.annotationTimes = self.ch1Spikes[0]
+        QtGui.QMessageBox.information(None,"Report","{d} spikes found.\n\n{i}".format(d=len(self.ch1Spikes[0]),i=self.ch1Spikes[0]))
+        # if self.ch1Spikes is None:
+        #     self.ch1Spikes = peakFinder.randomLists()
+        #     QtGui.QMessageBox.information(None,"Report","{d} spikes found.".format(d=len(self.ch1Spikes[0])))
+        # print self.ch1Spikes
 
         # ch1Spikes = DataProcessing.stupidIdentifySpikes(self.canvas.rawData[1,:][0],cutoff=self.thresholdEdit.text().toDouble()[0])
         # print ch1Spikes[0]

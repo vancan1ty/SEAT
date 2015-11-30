@@ -245,7 +245,7 @@ class EEGCanvas(app.Canvas):
         displayChannels = [self.channels[i] for i in indices]
         displayPositions = np.linspace(0.9,-0.9,len(displayChannels))
 
-        self.annotationTimes = [1,7,11,14,21]
+        self.annotationTimes = []
 
         self.positionsToTextMap = {}
         for i in range(0,len(displayPositions)):
