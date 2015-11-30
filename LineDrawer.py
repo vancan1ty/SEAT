@@ -1,7 +1,5 @@
-#[CB 11/28/2015]
-#this module defines functionality related to creating text in vispy opengl gloo
-#follows outline given here:
-#http://www.opengl-tutorial.org/intermediate-tutorials/tutorial-11-2d-text/
+#[CB 11/29/2015]
+#this module defines functionality related to creating annotation lines in vispy opengl gloo
 
 import csv
 import vispy
