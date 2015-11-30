@@ -156,9 +156,9 @@ void main() {
         discard;
 
     // Clipping test.
-    vec2 test = abs((v_position.xy-v_ab.zw)/v_ab.xy);
-    if ((test.x > 1) || (test.y > 1))
-        discard;
+    // vec2 test = abs((v_position.xy-v_ab.zw)/v_ab.xy);
+ 	// if ((test.x > 1) || (test.y > 1))
+    //     discard;
 }
 """
 
@@ -198,11 +198,12 @@ class EEGCanvas(app.Canvas):
 
     def setupDataDisplay(self):
         """requires that you have already set a number of things on self"""
-        self.displayData = DataProcessing.getDisplayData(self.rawData, self.startTime, self.endTime, self.storedAmplitude, self.lowPass, self.highPass)
+        numChannels = 15
+        self.displayData = DataProcessing.getDisplayData(self.rawData, self.startTime, self.endTime, self.storedAmplitude, self.lowPass, self.highPass, range(0,numChannels))
         self.setupZoom(self.displayData)
         self.channels = self.rawData.ch_names
         self.selectChannels()
-        displayChannels = self.channels[1:15]
+        displayChannels = self.channels[1:numChannels]
         displayPositions = np.linspace(0.9,-1.1,15)
         self.positionsToTextMap = {}
         for i in range(0,len(displayPositions)-1):
