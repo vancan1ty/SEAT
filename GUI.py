@@ -93,8 +93,12 @@ class EpWindow(QtGui.QMainWindow):
         dialog.show()
 
     def on_pushButtonOK_clicked(self):
+        self.indices = []
         for item in self.select.selectedItems():
-            print item.text
+            self.indices.append(self.canvas.channels.index(item.text()))
+
+        self.canvas.setupDataDisplay(self.indices)
+        print indices
 
     def setupMenus(self, togglePyDock):
         """set up menubar menus"""
