@@ -14,15 +14,15 @@ class EEGScrollArea(QtGui.QAbstractScrollArea):
         super(EEGScrollArea, self).__init__()
         self.canvas = canvas
         self.setViewport(canvas.native)
-        self.horizontalScrollBar().setMinimum(0)
         self.pageStep = canvas.getDisplayWidth()
+        self.horizontalScrollBar().setMinimum(-self.pageStep)
         self.horizontalScrollBar().setPageStep(self.pageStep) 
         self.horizontalScrollBar().setMaximum(self.canvas.getTotalWidth()-self.pageStep)
         self.canvas.show()
 
     def resetScrollBarStuff(self):
-        self.horizontalScrollBar().setMinimum(0)
         self.pageStep = self.canvas.getDisplayWidth()
+        self.horizontalScrollBar().setMinimum(-self.pageStep)
         self.horizontalScrollBar().setPageStep(self.pageStep) 
         self.horizontalScrollBar().setMaximum(self.canvas.getTotalWidth()-self.pageStep)
 

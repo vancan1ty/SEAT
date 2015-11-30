@@ -176,13 +176,13 @@ class EEGCanvas(app.Canvas):
 
     def getDisplayWidth(self):
         if(self.endTime):
-            return self.endTime-self.startTime
+            return self.startTime
         else:
             return 0
 
     def getTotalWidth(self):
         if(self.rawData):
-            return 600#self.rawData[0][0].shape[1]
+            return self.rawData.times[-1]
         else:
             return 0
 
@@ -252,7 +252,6 @@ class EEGCanvas(app.Canvas):
 
         gloo.set_viewport(0, 0, *self.physical_size)
         self.updateTextBoxes()
-
 
         self.dragZoom = False
         self.oldPos = None
