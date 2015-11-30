@@ -19,6 +19,7 @@ sip.setapi("QVariant", 2)
 import sys
 from PyQt4 import QtGui
 from PyQt4 import QtCore
+from PyQt4.QtGui import QListWidgetItem, QListWidget, QDialog, QPushButton
 import CanvasHandler
 import DataProcessing
 import mne
@@ -73,6 +74,28 @@ class EpWindow(QtGui.QMainWindow):
     def show_tfr_plot(self):
         DataProcessing.generate_and_plot_waveletAnalysis(self.canvas.rawData,3,self.canvas.startTime,self.canvas.endTime)
 
+    def select_channels(self):
+        dialog = QtGui.QDialog(self)
+        self.select = QtGui.QListWidget()
+        self.select.setSelectionMode(QtGui.QAbstractItemView.ExtendedSelection)
+        pushButtonOK = QtGui.QPushButton()
+        pushButtonOK.setText("OK")
+        pushButtonOK.clicked.connect(self.on_pushButtonOK_clicked)
+        channels = self.canvas.channels
+        for i in range(0,len(channels)-1):
+            item = QtGui.QListWidgetItem(channels[i])
+            self.select.addItem(item)
+
+        layoutVertical = QtGui.QVBoxLayout()
+        dialog.setLayout(layoutVertical)
+        layoutVertical.addWidget(pushButtonOK)
+        layoutVertical.addWidget(self.select)
+        dialog.show()
+
+    def on_pushButtonOK_clicked(self):
+        for item in self.select.selectedItems():
+            print item.text
+
     def setupMenus(self, togglePyDock):
         """set up menubar menus"""
         openAction = QtGui.QAction('&Open', self)
@@ -119,10 +142,13 @@ class EpWindow(QtGui.QMainWindow):
         viewMenu.addAction(showToolbarAction)
         viewMenu.addAction(showEBAction)
 
+        scAction = QtGui.QAction('&Select Channels', self)
+        scAction.triggered.connect(self.select_channels)
         rcAction = QtGui.QAction('&Raw Channels', self)
         avgAction = QtGui.QAction('&Channels vs Avg', self)
         bananaAction = QtGui.QAction('&Banana View', self)
         montageSelect = viewMenu.addMenu("&Select View")
+        montageSelect.addAction(scAction)
         montageSelect.addAction(rcAction)
         montageSelect.addAction(avgAction)
         montageSelect.addAction(bananaAction)
@@ -235,7 +261,7 @@ happy scripting
 """)
         self.pythonScripter.pushVariables({"window": self})
         #self.pythonScripter.executeCommand(printHelpText)
-        
+
         pyDockWidget = QtGui.QDockWidget("Python REPL")
         pyDockWidget.setWidget(self.pythonScripter)
         self.addDockWidget(QtCore.Qt.LeftDockWidgetArea,pyDockWidget)
@@ -263,14 +289,14 @@ happy scripting
 
 
     def onUpdateTextBoxes(self):
-        lowPassT = self.lowEdit.text().toDouble()
-        highPassT = self.highEdit.text().toDouble()
-        self.canvas.onTextBoxesChanged(lowPassT[0],highPassT[0])
+        lowPassT = float(self.lowEdit.text())
+        highPassT = float(self.highEdit.text())
+        self.canvas.onTextBoxesChanged(lowPassT,highPassT)
 
     def onStartEndChanged(self):
-        startTimeT = self.startEdit.text().toDouble()
-        endTimeT = self.endEdit.text().toDouble()
-        self.canvas.onStartEndChanged(startTimeT[0],endTimeT[0])
+        startTimeT = float(self.startEdit.text())
+        endTimeT = float(self.endEdit.text())
+        self.canvas.onStartEndChanged(startTimeT,endTimeT)
 
 def main():
     app = QtGui.QApplication(sys.argv)
@@ -279,4 +305,3 @@ def main():
 
 if __name__ == '__main__':
     main()
-

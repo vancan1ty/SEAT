@@ -152,7 +152,7 @@ def do_tfr_plot(time,scales,power,data):
     fig, axarr = plt.subplots(2,sharex=True)
     T, S = np.meshgrid(time, scales)
     print "shape: " + str(power.shape)
-    
+
     gs = gridspec.GridSpec(2, 1,height_ratios=[2,1])
     ax1 = plt.subplot(gs[0])
     ax2 = plt.subplot(gs[1],sharex=ax1)
@@ -166,4 +166,3 @@ def do_tfr_plot(time,scales,power,data):
     ax2.plot(time, data)
 
     plt.show()
-
