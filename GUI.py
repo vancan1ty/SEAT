@@ -82,10 +82,10 @@ class EpWindow(QtGui.QMainWindow):
     def show_spectral_map(self):
         start = self.canvas.startTime
         end = self.canvas.endTime
-        self.canvas.rawData.plot_psd(start,end,picks=range(1,15))
+        self.canvas.rawData.plot_psd(start,end,picks=self.canvas.indices)
 
     def show_tfr_plot(self):
-        DataProcessing.generate_and_plot_waveletAnalysis(self.canvas.rawData,3,self.canvas.startTime,self.canvas.endTime)
+        DataProcessing.generate_and_plot_waveletAnalysis(self.canvas.rawData,self.canvas.indices[0],self.canvas.startTime,self.canvas.endTime,self.canvas.samplingRate)
 
     def buildChannelSelector(self):
         self.channelChooser = QtGui.QDockWidget("Select Channels")
@@ -112,10 +112,11 @@ class EpWindow(QtGui.QMainWindow):
         channels = self.canvas.channels
         for i in range(0,len(channels)-1):
             item = QtGui.QListWidgetItem(channels[i])
+            self.channelList.addItem(item)
             if i in self.canvas.indices:
                 item.setSelected(True)
                 #print item.isSelected()
-            self.channelList.addItem(item)
+
 
     def on_pushButtonOK_clicked(self):
         self.indices = []

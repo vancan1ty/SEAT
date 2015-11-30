@@ -18,7 +18,6 @@ from PyQt4 import QtGui
 from TextDrawer import TextDrawer
 from LineDrawer import LineDrawer
 
-SAMPLING_RATE=256
 START_TIME = 0.0
 END_TIME = 6.0
 
@@ -242,6 +241,7 @@ class EEGCanvas(app.Canvas):
         self.displayData = DataProcessing.getDisplayData(self.rawData, self.startTime, self.endTime, self.storedAmplitude, self.lowPass, self.highPass, self.indices)
         self.setupZoom(self.displayData)
         self.channels = self.rawData.ch_names
+        self.samplingRate = self.rawData.info['sfreq']
         displayChannels = [self.channels[i] for i in indices]
         displayPositions = np.linspace(0.9,-0.9,len(displayChannels))
 

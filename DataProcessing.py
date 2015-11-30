@@ -133,12 +133,12 @@ def score_predictions(truth, predictions):
             numCorrect += 1
     return (numCorrect, numPredictions - numCorrect, numSpikes - numCorrect)
 
-def generate_and_plot_waveletAnalysis(rawData,channel,startTime,endTime):
+def generate_and_plot_waveletAnalysis(rawData,channel,startTime,endTime,samplingRate):
     """takes in a Raw, indexes """
     start, stop = rawData.time_as_index([startTime, endTime])
     ldata, ltimes = rawData[channel, start:stop]
     print "ldata shape: " + str(ldata.shape)
-    wa = make_waveletAnalysis(ldata[0],SAMPLING_RATE)
+    wa = make_waveletAnalysis(ldata[0],samplingRate)
     do_tfr_plot(wa.time+startTime, wa.scales, wa.wavelet_power,ldata[0])
 
 def make_waveletAnalysis(data,samplingRate):
