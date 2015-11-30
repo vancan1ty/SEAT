@@ -1,4 +1,5 @@
 import random
+import time
 # Takes in input as the list of lists and
 # outputs a list of indices for each channel
 # based on the spike frequency range of 20ms-70ms
@@ -62,12 +63,14 @@ def spikeFinder(inputList):
     print "Main done"
     return indices
 
-randomLists = [[] for x in range(8)]
-for k in randomLists:
-    for x in range(1000):
-        randomNum = random.random()
-        randomNum = 100*randomNum
-        k.append(int(randomNum))
+def randomLists():
+	randomLists = [[] for x in range(8)]
+	for k in randomLists:
+	    for x in range(1000):
+	        randomNum = random.random()
+	        randomNum = 100*randomNum
+	        k.append(int(randomNum))
 
-something = spikeFinder(randomLists)
-print something
+	something = spikeFinder(randomLists)
+	time.sleep(10)
+	return something

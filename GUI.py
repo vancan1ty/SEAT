@@ -21,6 +21,7 @@ from PyQt4 import QtGui
 from PyQt4 import QtCore
 from PyQt4.QtGui import QListWidgetItem, QListWidget, QDialog, QPushButton
 import CanvasHandler
+import peakFinder
 import DataProcessing
 import mne
 from mne.time_frequency import tfr_multitaper, tfr_stockwell, tfr_morlet
@@ -42,13 +43,19 @@ class EpWindow(QtGui.QMainWindow):
         filePath = "../EEGDATA/CAPSTONE_AB/BASHAREE_TEST.edf"
         self.canvas.loadData(filePath)
         self.populateUICanvas()
+        self.ch1Spikes = None
 
 
     def runSpikeDetection(self):
         """runs stupid spike detector on only 1st channel"""
-        ch1Spikes = DataProcessing.stupidIdentifySpikes(self.canvas.rawData[1,:][0],cutoff=self.thresholdEdit.text().toDouble()[0])
-        print ch1Spikes[0]
-        QtGui.QMessageBox.information(None,"Report","{d} spikes found.".format(d=len(ch1Spikes[0])))
+        if self.ch1Spikes is None:
+            self.ch1Spikes = peakFinder.randomLists()
+            QtGui.QMessageBox.information(None,"Report","{d} spikes found.".format(d=len(self.ch1Spikes[0])))
+        print self.ch1Spikes
+
+        # ch1Spikes = DataProcessing.stupidIdentifySpikes(self.canvas.rawData[1,:][0],cutoff=self.thresholdEdit.text().toDouble()[0])
+        # print ch1Spikes[0]
+        # QtGui.QMessageBox.information(None,"Report","{d} spikes found.".format(d=len(ch1Spikes[0])))
 
 
     def setModeSelect(self):
@@ -65,6 +72,7 @@ class EpWindow(QtGui.QMainWindow):
         print filePath
         self.canvas.loadData(filePath)
         self.populateUICanvas()
+        self.ch1Spikes = None
 
     def show_spectral_map(self):
         start = self.canvas.startTime
