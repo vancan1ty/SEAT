@@ -216,9 +216,14 @@ class EEGCanvas(app.Canvas):
         self.setupZoom(self.displayData)
         self.channels = self.rawData.ch_names
         displayChannels = [self.channels[i] for i in indices]
-        displayPositions = np.linspace(0.9,-1.1,len(displayChannels))
+        displayPositions = None
+        if(len(displayChannels) < 7): #[CB] this is awful
+            displayPositions = np.linspace(0.5,-0.5,len(displayChannels))
+        else:
+            displayPositions = np.linspace(0.9,-1.1,len(displayChannels))
+
         self.positionsToTextMap = {}
-        for i in range(0,len(displayPositions)-1):
+        for i in range(0,len(displayPositions)):
             self.positionsToTextMap[(-0.97,displayPositions[i])]=str(displayChannels[i])
         self.program = gloo.Program(SERIES_VERT_SHADER, SERIES_FRAG_SHADER)
         self.vertices = gloo.VertexBuffer(V)
