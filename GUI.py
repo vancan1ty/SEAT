@@ -109,7 +109,7 @@ class EpWindow(QtGui.QMainWindow):
             item = QtGui.QListWidgetItem(channels[i])
             if i in self.canvas.indices:
                 item.setSelected(True)
-                print item.isSelected()
+                #print item.isSelected()
             self.channelList.addItem(item)
 
     def on_pushButtonOK_clicked(self):

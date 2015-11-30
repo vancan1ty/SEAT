@@ -16,6 +16,7 @@ import DataProcessing
 from PyQt4 import QtCore
 from PyQt4 import QtGui
 from TextDrawer import TextDrawer
+from LineDrawer import LineDrawer
 
 SAMPLING_RATE=256
 START_TIME = 0.0
@@ -66,14 +67,9 @@ V3 = np.zeros(6, [("position", np.float32, 3)])
 V3["position"] = np.float32([[-0.2,0.2,0],[0.2,0.2,0],[-0.2,-0.2,0],
                                                            [-0.2,-0.2,0],[0.2,-0.2,0],[0.2,0.2,0]])
 
-zoombox_fragment_shader = """
-void main()
-{
-    gl_FragColor = vec4(0.0, 0.7, 0.0, 0.2);
-}
-"""
+zoombox_vertex_shader = """
+#version 120
 
-progAnnotations_vertex_shader = """
 attribute vec3 position;
 void main()
 {
@@ -81,10 +77,39 @@ void main()
 }
 """
 
-progAnnotations_fragment_shader = """
+
+zoombox_fragment_shader = """
+#version 120
+
 void main()
 {
-    gl_FragColor = vec4(0.0, 0.5, 0.0, 0.1);
+    gl_FragColor = vec4(0.0, 0.7, 0.0, 0.2);
+}
+"""
+
+progAnnotations_vertex_shader = """
+#version 120
+
+attribute vec3 a_color;
+varying vec4 v_color;
+
+attribute vec3 position;
+void main()
+{
+    v_color = vec4(a_color, 1.);
+    gl_Position = vec4(position, 1.0);
+}
+"""
+
+progAnnotations_fragment_shader = """
+#version 120
+
+varying vec4 v_color;
+
+void main()
+{
+
+    gl_FragColor = v_color;
 }
 """
 
@@ -167,6 +192,7 @@ class EEGCanvas(app.Canvas):
 
    """
     myTextDrawer = None
+    myLineDrawer = None
     rawData= None
     displayData = None
     rawData = None
@@ -174,6 +200,7 @@ class EEGCanvas(app.Canvas):
     endTime = None
     parentScroller = None
     indices = range(1, 15)
+    annotationTimes = []
 
     def getDisplayWidth(self):
         if(self.endTime):
@@ -216,11 +243,9 @@ class EEGCanvas(app.Canvas):
         self.setupZoom(self.displayData)
         self.channels = self.rawData.ch_names
         displayChannels = [self.channels[i] for i in indices]
-        displayPositions = None
-        if(len(displayChannels) < 7): #[CB] this is awful
-            displayPositions = np.linspace(0.5,-0.5,len(displayChannels))
-        else:
-            displayPositions = np.linspace(0.9,-1.1,len(displayChannels))
+        displayPositions = np.linspace(0.9,-0.9,len(displayChannels))
+
+        self.annotationTimes = [1,7,11,14,21]
 
         self.positionsToTextMap = {}
         for i in range(0,len(displayPositions)):
@@ -231,12 +256,13 @@ class EEGCanvas(app.Canvas):
         self.progAnnotations = gloo.Program(progAnnotations_vertex_shader, progAnnotations_fragment_shader)
         self.progAnnotations.bind(self.vertices)
 
-        self.progZoom = gloo.Program(progAnnotations_vertex_shader, zoombox_fragment_shader)
+        self.progZoom = gloo.Program(zoombox_vertex_shader, zoombox_fragment_shader)
         self.progZoom.bind(self.zoomBoxBuffer)
 
         self.setupZoomStep2()
 
         self.myTextDrawer = TextDrawer(self.physical_size[1],self.physical_size[0])
+        self.myLineDrawer = LineDrawer()
         print "height " + str(self.physical_size[1])
 
         self.progText = gloo.Program(text_vertex_shader, text_fragment_shader)
@@ -246,6 +272,8 @@ class EEGCanvas(app.Canvas):
         self.fontTexture =gloo.Texture2D(self.fontBMP,format="rgba")
 
         self.textVerticesArr = self.myTextDrawer.computeTextsData(self.positionsToTextMap)
+        self.updateLines()
+
         self.textVertices = gloo.VertexBuffer(self.textVerticesArr)
         self.progText.bind(self.textVertices)
         self.progText["myTextureSampler"] = self.fontTexture
@@ -268,6 +296,11 @@ class EEGCanvas(app.Canvas):
         gloo.set_state(clear_color='black', blend=True,
                        blend_func=('src_alpha', 'one_minus_src_alpha'))
         self.update()
+
+    def updateLines(self):
+        self.lineVerticesArr = self.myLineDrawer.computeLinesData(self.annotationTimes,self.startTime,self.endTime)
+        self.lineVertices = gloo.VertexBuffer(self.lineVerticesArr)
+        self.progAnnotations.bind(self.lineVertices)
 
     def loadData(self,filepath):
         self.dSetName = filepath.split("/")[-1]
@@ -327,6 +360,7 @@ class EEGCanvas(app.Canvas):
     def setMode(self, mode):
         self.mode = mode
 
+        #[CB] this function does nothing
     def zoom(self, xFactor, yFactor):
         # gloo.set_viewport(orig[0], orig[1], size[0], size[1])
         # self.program['resolution'] = [size[0], size[1]]
@@ -376,6 +410,7 @@ class EEGCanvas(app.Canvas):
         self.signalData = np.float32(10000*np.array(self.displayData[0]))
         self.program['a_position'] = self.signalData.reshape(-1, 1)
         self.updateTextBoxes()
+        self.updateLines()
         self.update()
 
     def onAmplitudeChanged(self, nAmplitude):
@@ -403,6 +438,7 @@ class EEGCanvas(app.Canvas):
         # self.program.delete()
         # self.program = gloo.Program(SERIES_VERT_SHADER, SERIES_FRAG_SHADER)
         self.setupZoomStep2()
+        self.updateLines()
         self.update()
 
     def updateTextBoxes(self):
@@ -451,6 +487,7 @@ class EEGCanvas(app.Canvas):
 
     def on_draw(self, event):
         gloo.clear("black")
+
         if (self.dragZoom and self.mode == 'zoom'):
             xDiff = self.newPos[0]-self.oldPos[0]
             yDiff = self.newPos[1]-self.oldPos[1]
@@ -467,7 +504,7 @@ class EEGCanvas(app.Canvas):
              V2 = np.zeros(6, [("position", np.float32, 3)])
              V2["position"] = np.float32((np.random.rand(6,3)*2-1))
              self.vertices.set_data(V2)
-             #self.progAnnotations.draw('triangles')
+        self.progAnnotations.draw('lines')
         self.program.draw('line_strip')
         self.progText.draw("triangles")
 
