@@ -156,9 +156,9 @@ void main() {
         discard;
 
     // Clipping test.
-    vec2 test = abs((v_position.xy-v_ab.zw)/v_ab.xy);
-    if ((test.x > 1) || (test.y > 1))
-        discard;
+    // vec2 test = abs((v_position.xy-v_ab.zw)/v_ab.xy);
+ 	// if ((test.x > 1) || (test.y > 1))
+    //     discard;
 }
 """
 
@@ -168,6 +168,23 @@ class EEGCanvas(app.Canvas):
    """
     myTextDrawer = None
     rawData= None
+    displayData = None
+    rawData = None
+    startTime = None
+    endTime = None
+    parentScroller = None
+
+    def getDisplayWidth(self):
+        if(self.endTime):
+            return self.endTime-self.startTime
+        else:
+            return 0
+
+    def getTotalWidth(self):
+        if(self.rawData):
+            return 600#self.rawData[0][0].shape[1]
+        else:
+            return 0
 
     def __init__(self, startEdit, endEdit, lowEdit, highEdit):
         app.Canvas.__init__(self, title='Use your wheel to scroll!',
@@ -198,11 +215,12 @@ class EEGCanvas(app.Canvas):
 
     def setupDataDisplay(self):
         """requires that you have already set a number of things on self"""
+        numChannels = 15
         self.displayData = DataProcessing.getDisplayData(self.rawData, self.startTime, self.endTime, self.storedAmplitude, self.lowPass, self.highPass)
         self.setupZoom(self.displayData)
         self.channels = self.rawData.ch_names
         self.selectChannels()
-        displayChannels = self.channels[1:15]
+        displayChannels = self.channels[1:numChannels]
         displayPositions = np.linspace(0.9,-1.1,15)
         self.positionsToTextMap = {}
         for i in range(0,len(displayPositions)-1):
@@ -256,6 +274,7 @@ class EEGCanvas(app.Canvas):
         self.dSetName = filepath.split("/")[-1]
         self.rawData = mne.io.read_raw_edf(str(filepath),preload=True)
         self.setupDataDisplay()
+        self.parentScroller.resetScrollBarStuff()
 
     def setupZoom(self,displayData):
         """ this function should be called whenever a "zoom" operation is performed"""
@@ -321,6 +340,7 @@ class EEGCanvas(app.Canvas):
         print " "
 
     def on_resize(self, event):
+        print "in on resize {e}".format(e=event)
         if (self.myTextDrawer):
             self.myTextDrawer.onChangeDimensions(event.physical_size[1],event.physical_size[0])
             self.textVerticesArr = self.myTextDrawer.computeTextsData(self.positionsToTextMap)
@@ -342,8 +362,8 @@ class EEGCanvas(app.Canvas):
     #                                 scale_y * math.exp(0.0*dx))
     #     self.program['u_scale'] = (max(1, scale_x_new), max(1, scale_y_new))
     #     self.update()
-    def on_mouse_wheel(self, event):
-        dx = -np.sign(event.delta[1])
+    def handle_scroll(self, fdx):
+        dx = -fdx#-np.sign(event.delta[1])
         if((self.startTime + dx) > 0.5):
             self.startTime += dx
             self.endTime += dx

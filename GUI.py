@@ -19,13 +19,14 @@ sip.setapi("QVariant", 2)
 import sys
 from PyQt4 import QtGui
 from PyQt4 import QtCore
-from PyQt4.QtGui import QListWidgetItem, QListWidget, QDialog
+from PyQt4.QtGui import QListWidgetItem, QListWidget, QDialog, QPushButton
 import CanvasHandler
 import DataProcessing
 import mne
 from mne.time_frequency import tfr_multitaper, tfr_stockwell, tfr_morlet
 import numpy as np
 from QIPythonWidget import QIPythonWidget
+from EEGScrollArea import EEGScrollArea
 
 SAMPLING_RATE=256
 START_TIME = 0.0
@@ -74,14 +75,26 @@ class EpWindow(QtGui.QMainWindow):
         DataProcessing.generate_and_plot_waveletAnalysis(self.canvas.rawData,3,self.canvas.startTime,self.canvas.endTime)
 
     def select_channels(self):
-        window = QDialog()
-        select = QListWidget(window)
+        dialog = QtGui.QDialog(self)
+        self.select = QtGui.QListWidget()
+        self.select.setSelectionMode(QtGui.QAbstractItemView.ExtendedSelection)
+        pushButtonOK = QtGui.QPushButton()
+        pushButtonOK.setText("OK")
+        pushButtonOK.clicked.connect(self.on_pushButtonOK_clicked)
         channels = self.canvas.channels
         for i in range(0,len(channels)-1):
-            item = QListWidgetItem(channels[i])
-            select.addItem(item)
+            item = QtGui.QListWidgetItem(channels[i])
+            self.select.addItem(item)
 
-        window.show()
+        layoutVertical = QtGui.QVBoxLayout()
+        dialog.setLayout(layoutVertical)
+        layoutVertical.addWidget(pushButtonOK)
+        layoutVertical.addWidget(self.select)
+        dialog.show()
+
+    def on_pushButtonOK_clicked(self):
+        for item in self.select.selectedItems():
+            print item.text
 
     def setupMenus(self, togglePyDock):
         """set up menubar menus"""
@@ -217,9 +230,12 @@ class EpWindow(QtGui.QMainWindow):
         spikeButton = QtGui.QPushButton('Find Spikes', holderWidget)
         grid.addWidget(spikeButton, 6, 0)
 
+        self.scroller = EEGScrollArea(self.canvas)
+        self.canvas.parentScroller = self.scroller
+
         #scroller = QtGui.QScrollArea();
         #scroller.setWidget(c.native)
-        grid.addWidget(self.canvas.native, 1, 1, 6, 11)
+        grid.addWidget(self.scroller, 1, 1, 6, 11)
 
         QtCore.QObject.connect(slider, QtCore.SIGNAL('valueChanged(int)'), self.onUpdateSliderValue)
         QtCore.QObject.connect(self.startEdit, QtCore.SIGNAL('editingFinished()'), self.onStartEndChanged)
@@ -273,14 +289,14 @@ happy scripting
 
 
     def onUpdateTextBoxes(self):
-        lowPassT = self.lowEdit.text().toDouble()
-        highPassT = self.highEdit.text().toDouble()
-        self.canvas.onTextBoxesChanged(lowPassT[0],highPassT[0])
+        lowPassT = float(self.lowEdit.text())
+        highPassT = float(self.highEdit.text())
+        self.canvas.onTextBoxesChanged(lowPassT,highPassT)
 
     def onStartEndChanged(self):
-        startTimeT = self.startEdit.text().toDouble()
-        endTimeT = self.endEdit.text().toDouble()
-        self.canvas.onStartEndChanged(startTimeT[0],endTimeT[0])
+        startTimeT = float(self.startEdit.text())
+        endTimeT = float(self.endEdit.text())
+        self.canvas.onStartEndChanged(startTimeT,endTimeT)
 
 def main():
     app = QtGui.QApplication(sys.argv)
