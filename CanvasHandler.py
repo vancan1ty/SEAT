@@ -216,7 +216,7 @@ class EEGCanvas(app.Canvas):
     def setupDataDisplay(self):
         """requires that you have already set a number of things on self"""
         numChannels = 15
-        self.displayData = DataProcessing.getDisplayData(self.rawData, self.startTime, self.endTime, self.storedAmplitude, self.lowPass, self.highPass, range(0,numChannels))
+        self.displayData = DataProcessing.getDisplayData(self.rawData, self.startTime, self.endTime, self.storedAmplitude, self.lowPass, self.highPass)
         self.setupZoom(self.displayData)
         self.channels = self.rawData.ch_names
         self.selectChannels()
