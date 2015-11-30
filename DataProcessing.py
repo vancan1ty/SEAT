@@ -162,7 +162,7 @@ def do_tfr_plot(time,scales,power,data):
     ax1.set_xlim([time[0], time[-1]])
     print "scales.shape " + str(scales.shape)
     ax1.contourf(T, S, power, 100)
-    #ax1.set_yscale('log')
+    ax1.set_yscale('log')
     ax2.plot(time, data)
 
     plt.show()

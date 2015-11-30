@@ -41,3 +41,6 @@ class EEGScrollArea(QtGui.QAbstractScrollArea):
 
     def paintEvent(self, event):
         self.viewport().paintEvent(event)
+
+    def setValue(self,time):
+        self.horizontalScrollBar().setValue(time)

@@ -329,6 +329,7 @@ happy scripting
     def onStartEndChanged(self):
         startTimeT = float(self.startEdit.text())
         endTimeT = float(self.endEdit.text())
+        self.scroller.setValue(startTimeT)
         self.canvas.onStartEndChanged(startTimeT,endTimeT)
 
 def main():
