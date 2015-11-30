@@ -173,6 +173,7 @@ class EEGCanvas(app.Canvas):
     startTime = None
     endTime = None
     parentScroller = None
+    indices = range(1, 15)
 
     def getDisplayWidth(self):
         if(self.endTime):
@@ -206,7 +207,6 @@ class EEGCanvas(app.Canvas):
         self.min_scale = 0.00005
         self.max_scale = 10
         self.dragZoom = False
-        self.indices = range(1, 15)
         self.show()
 
     def setupDataDisplay(self, indices=range(1,15)):

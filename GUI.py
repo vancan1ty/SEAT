@@ -83,35 +83,44 @@ class EpWindow(QtGui.QMainWindow):
         DataProcessing.generate_and_plot_waveletAnalysis(self.canvas.rawData,3,self.canvas.startTime,self.canvas.endTime)
 
     def buildChannelSelector(self):
-        dialog = QtGui.QDockWidget("Select Channels")
+        self.channelChooser = QtGui.QDockWidget("Select Channels")
+        self.channelsBox = QtGui.QWidget(self.channelChooser)
 
-        channelSelector = QtGui.QListWidget()
-        channelSelector.setSelectionMode(QtGui.QAbstractItemView.ExtendedSelection)
+        self.channelList = QtGui.QListWidget()
+        self.channelList.setSelectionMode(QtGui.QAbstractItemView.ExtendedSelection)
         pushButtonOK = QtGui.QPushButton()
         pushButtonOK.setText("Update")
         pushButtonOK.clicked.connect(self.on_pushButtonOK_clicked)
+
+        layoutVertical = QtGui.QVBoxLayout()
+        layoutVertical.setContentsMargins(0,0,0,0)
+        self.channelsBox.setLayout(layoutVertical)
+        layoutVertical.addWidget(self.channelList)
+        layoutVertical.addWidget(pushButtonOK)
+
+        self.channelChooser.setWidget(self.channelsBox)
+        self.addDockWidget(QtCore.Qt.LeftDockWidgetArea,self.channelChooser)
+        self.toggleChannelSelector = self.channelChooser.toggleViewAction()
+
+    def updateChannelSelector(self):
+        self.channelList.clear()
         channels = self.canvas.channels
         for i in range(0,len(channels)-1):
             item = QtGui.QListWidgetItem(channels[i])
-            channelSelector.addItem(item)
-
-        layoutVertical = QtGui.QVBoxLayout()
-        dialog.setLayout(layoutVertical)
-        layoutVertical.addWidget(self.select)
-        layoutVertical.addWidget(pushButtonOK)
-
-        self.addDockWidget(QtCore.Qt.LeftDockWidgetArea,dialog)
-        toggleChannelSelector = dialog.toggleViewAction()
+            if i in self.canvas.indices:
+                item.setSelected(True)
+                print item.isSelected()
+            self.channelList.addItem(item)
 
     def on_pushButtonOK_clicked(self):
         self.indices = []
-        for item in self.select.selectedItems():
+        for item in self.channelList.selectedItems():
             self.indices.append(self.canvas.channels.index(item.text()))
 
         self.canvas.setupDataDisplay(self.indices)
         print self.indices
 
-    def setupMenus(self, togglePyDock):
+    def setupMenus(self, togglePyDock,toggleChannelSelector):
         """set up menubar menus"""
         openAction = QtGui.QAction('&Open', self)
         openAction.setShortcut('Ctrl+o')
@@ -155,7 +164,7 @@ class EpWindow(QtGui.QMainWindow):
         showEBAction = QtGui.QAction('&Show Events Browser?', self)
 
         viewMenu = menubar.addMenu('&View')
-        viewMenu.addAction(scAction)
+        viewMenu.addAction(toggleChannelSelector)
         viewMenu.addAction(togglePyDock)
         viewMenu.addAction(showToolbarAction)
         viewMenu.addAction(showEBAction)
@@ -164,7 +173,6 @@ class EpWindow(QtGui.QMainWindow):
         avgAction = QtGui.QAction('&Channels vs Avg', self)
         bananaAction = QtGui.QAction('&Banana View', self)
         montageSelect = viewMenu.addMenu("&Select View")
-        montageSelect.addAction(scAction)
         montageSelect.addAction(rcAction)
         montageSelect.addAction(avgAction)
         montageSelect.addAction(bananaAction)
@@ -184,6 +192,7 @@ class EpWindow(QtGui.QMainWindow):
         self.startEdit.setValidator(timeValidator)
         self.endEdit.setValidator(timeValidator)
         self.canvas.setupDataDisplay()
+        self.updateChannelSelector()
         self.statusBar().showMessage(self.canvas.dSetName + ".   " + str(self.canvas.rawData.times[-1]) + " seconds.")
 
     def initUI(self):
@@ -283,16 +292,15 @@ happy scripting
         self.addDockWidget(QtCore.Qt.LeftDockWidgetArea,pyDockWidget)
         toggleViewPyDock = pyDockWidget.toggleViewAction()
 
-
-
-
         holderWidget.setLayout(grid)
 
         self.setCentralWidget(holderWidget)
         self.statusBar().showMessage("Use File->Open to choose a dataset to open")
 
         #create pulldown menus
-        self.setupMenus(toggleViewPyDock)
+
+        self.buildChannelSelector()
+        self.setupMenus(toggleViewPyDock,self.toggleChannelSelector)
 
         self.setGeometry(50, 50, 350, 300)
 
