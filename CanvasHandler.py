@@ -208,20 +208,22 @@ class EEGCanvas(app.Canvas):
         self.max_scale = 10
         self.dragZoom = False
 
+        self.indices = range(1, 15)
+
         self.show()
 
     def selectChannels(self):
         print self.channels
 
-    def setupDataDisplay(self):
+    def setupDataDisplay(self, indices=range(1,15)):
         """requires that you have already set a number of things on self"""
-        numChannels = 15
-        self.displayData = DataProcessing.getDisplayData(self.rawData, self.startTime, self.endTime, self.storedAmplitude, self.lowPass, self.highPass)
+        self.indices = indices
+        self.displayData = DataProcessing.getDisplayData(self.rawData, self.startTime, self.endTime, self.storedAmplitude, self.lowPass, self.highPass, self.indices)
         self.setupZoom(self.displayData)
         self.channels = self.rawData.ch_names
         self.selectChannels()
-        displayChannels = self.channels[1:numChannels]
-        displayPositions = np.linspace(0.9,-1.1,15)
+        displayChannels = [self.channels[i] for i in indices]
+        displayPositions = np.linspace(0.9,-1.1,len(displayChannels))
         self.positionsToTextMap = {}
         for i in range(0,len(displayPositions)-1):
             self.positionsToTextMap[(-0.97,displayPositions[i])]=str(displayChannels[i])
