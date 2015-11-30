@@ -198,7 +198,6 @@ class EEGCanvas(app.Canvas):
         self.storedAmplitude = 1.0
         self.lowPass = 2.0
         self.highPass = 70.0
-        self.numchannels = 0 #maybe don't need this because re-rendering
 
         self.channelPositions = self.getChannelPositions()
         self.mode = 'select'
@@ -207,13 +206,8 @@ class EEGCanvas(app.Canvas):
         self.min_scale = 0.00005
         self.max_scale = 10
         self.dragZoom = False
-
         self.indices = range(1, 15)
-
         self.show()
-
-    def selectChannels(self):
-        print self.channels
 
     def setupDataDisplay(self, indices=range(1,15)):
         """requires that you have already set a number of things on self"""
@@ -221,7 +215,6 @@ class EEGCanvas(app.Canvas):
         self.displayData = DataProcessing.getDisplayData(self.rawData, self.startTime, self.endTime, self.storedAmplitude, self.lowPass, self.highPass, self.indices)
         self.setupZoom(self.displayData)
         self.channels = self.rawData.ch_names
-        self.selectChannels()
         displayChannels = [self.channels[i] for i in indices]
         displayPositions = np.linspace(0.9,-1.1,len(displayChannels))
         self.positionsToTextMap = {}
@@ -372,7 +365,7 @@ class EEGCanvas(app.Canvas):
             self.startTime += dx
             self.endTime += dx
         olen=len(self.displayData[0][0])
-        self.displayData = DataProcessing.getDisplayData(self.rawData, self.startTime, self.endTime, self.storedAmplitude, self.lowPass, self.highPass)
+        self.displayData = DataProcessing.getDisplayData(self.rawData, self.startTime, self.endTime, self.storedAmplitude, self.lowPass, self.highPass,self.indices)
         if(len(self.displayData[0][0]) != olen):
             self.onStartEndChanged(self.startTime,self.endTime)
         self.signalData = np.float32(10000*np.array(self.displayData[0]))
@@ -383,7 +376,7 @@ class EEGCanvas(app.Canvas):
     def onAmplitudeChanged(self, nAmplitude):
         self.storedAmplitude = nAmplitude;
         if(self.rawData):
-            self.displayData = DataProcessing.getDisplayData(self.rawData, self.startTime, self.endTime, self.storedAmplitude, self.lowPass, self.highPass)
+            self.displayData = DataProcessing.getDisplayData(self.rawData, self.startTime, self.endTime, self.storedAmplitude, self.lowPass, self.highPass,self.indices)
             self.signalData = np.float32(10000*np.array(self.displayData[0]))
             self.program['a_position'] = self.signalData.reshape(-1, 1)
             self.update()
@@ -392,7 +385,7 @@ class EEGCanvas(app.Canvas):
         self.lowPass = lowPass;
         self.highPass = highPass;
         print "startTime: {s}, endTime: {e}, lowPass: {l}, highPass: {h}".format(s=self.startTime, e=self.endTime, l=self.lowPass, h=self.highPass)
-        self.displayData = DataProcessing.getDisplayData(self.rawData, self.startTime, self.endTime, self.storedAmplitude, self.lowPass, self.highPass)
+        self.displayData = DataProcessing.getDisplayData(self.rawData, self.startTime, self.endTime, self.storedAmplitude, self.lowPass, self.highPass,self.indices)
         self.signalData = np.float32(10000*np.array(self.displayData[0]))
         self.program['a_position'] = self.signalData.reshape(-1, 1)
         self.update()
@@ -400,7 +393,7 @@ class EEGCanvas(app.Canvas):
     def onStartEndChanged(self, startTime, endTime):
         self.startTime = startTime;
         self.endTime = endTime;
-        self.displayData = DataProcessing.getDisplayData(self.rawData, self.startTime, self.endTime, self.storedAmplitude, self.lowPass, self.highPass)
+        self.displayData = DataProcessing.getDisplayData(self.rawData, self.startTime, self.endTime, self.storedAmplitude, self.lowPass, self.highPass,self.indices)
         self.setupZoom(self.displayData)
         # self.program.delete()
         # self.program = gloo.Program(SERIES_VERT_SHADER, SERIES_FRAG_SHADER)

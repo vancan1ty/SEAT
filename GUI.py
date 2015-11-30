@@ -137,17 +137,18 @@ class EpWindow(QtGui.QMainWindow):
         editMenu.addAction(copyAction)
         editMenu.addAction(pasteAction)
 
+        scAction = QtGui.QAction('&Select Channels', self)
+        scAction.triggered.connect(self.select_channels)
         togglePyDock.setShortcut("Ctrl-r")
         showToolbarAction = QtGui.QAction('&Show Toolbar?', self)
         showEBAction = QtGui.QAction('&Show Events Browser?', self)
 
         viewMenu = menubar.addMenu('&View')
+        viewMenu.addAction(scAction)
         viewMenu.addAction(togglePyDock)
         viewMenu.addAction(showToolbarAction)
         viewMenu.addAction(showEBAction)
 
-        scAction = QtGui.QAction('&Select Channels', self)
-        scAction.triggered.connect(self.select_channels)
         rcAction = QtGui.QAction('&Raw Channels', self)
         avgAction = QtGui.QAction('&Channels vs Avg', self)
         bananaAction = QtGui.QAction('&Banana View', self)
