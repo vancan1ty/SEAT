@@ -225,12 +225,12 @@ class EpWindow(QtGui.QMainWindow):
         self.endEdit = QtGui.QLineEdit("")
         grid.addWidget(self.endEdit, 0, 7)
 
-        modeLbl = QtGui.QLabel('Mode:')
-        grid.addWidget(modeLbl, 0, 9)
-        selectButton = QtGui.QPushButton('Select', holderWidget)
-        grid.addWidget(selectButton, 0, 10)
-        zoomButton = QtGui.QPushButton('Zoom', holderWidget)
-        grid.addWidget(zoomButton, 0, 11)
+        # modeLbl = QtGui.QLabel('Mode:')
+        # grid.addWidget(modeLbl, 0, 9)
+        # selectButton = QtGui.QPushButton('Select', holderWidget)
+        # grid.addWidget(selectButton, 0, 10)
+        # zoomButton = QtGui.QPushButton('Zoom', holderWidget)
+        # grid.addWidget(zoomButton, 0, 11)
 
         sliderLabel = QtGui.QLabel('Amplitude')
         grid.addWidget(sliderLabel, 1, 0)
@@ -268,8 +268,8 @@ class EpWindow(QtGui.QMainWindow):
         QtCore.QObject.connect(self.lowEdit, QtCore.SIGNAL('editingFinished()'), self.onUpdateTextBoxes)
         QtCore.QObject.connect(self.highEdit, QtCore.SIGNAL('editingFinished()'), self.onUpdateTextBoxes)
         QtCore.QObject.connect(spikeButton, QtCore.SIGNAL('clicked()'), self.runSpikeDetection)
-        QtCore.QObject.connect(selectButton, QtCore.SIGNAL('clicked()'), self.setModeSelect)
-        QtCore.QObject.connect(zoomButton, QtCore.SIGNAL('clicked()'), self.setModeZoom)
+        # QtCore.QObject.connect(selectButton, QtCore.SIGNAL('clicked()'), self.setModeSelect)
+        # QtCore.QObject.connect(zoomButton, QtCore.SIGNAL('clicked()'), self.setModeZoom)
 
         slider.setValue(self.canvas.storedAmplitude*10)
 
