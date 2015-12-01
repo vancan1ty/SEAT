@@ -1,5 +1,23 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
+
+#    Copyright (C) 2015 Currell Berry, Justin Jackson, and Team 41 Epilepsy Modeling 
+#
+#    This file is part of SEAT (Simple EEG Analysis Tool).
+#
+#    SEAT is free software: you can redistribute it and/or modify
+#    it under the terms of the GNU General Public License as published by
+#    the Free Software Foundation, either version 3 of the License, or
+#    (at your option) any later version.
+#
+#    SEAT is distributed in the hope that it will be useful,
+#    but WITHOUT ANY WARRANTY; without even the implied warranty of
+#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#    GNU General Public License for more details.
+#
+#    You should have received a copy of the GNU General Public License
+#    along with SEAT.  If not, see <http://www.gnu.org/licenses/>.
+
 """
 [CB 10/13/15] layers of abstraction
 EpWindow --> in charge of majority of GUI interaction and window chrome
@@ -70,7 +88,14 @@ class EpWindow(QtGui.QMainWindow):
         self.canvas.setMode('zoom')
 
     def show_about_window(self):
-        QtGui.QMessageBox.information(None,"About Epilepsy Modeling","This amazing project\n\nwas created by:\nUtkarsh Garg\nJohnny Farrow\nJustin Jackson\nCurrell Berry\nMichael Long")
+        QtGui.QMessageBox.information(None,"About SEAT",
+"""This project was written as a GT 2015 Capstone project.  Team members were as follows:
+
+Developers: Currell Berry, Justin Jackson
+Contributor: Michael Long
+Team Members: Johnny Farrow, Utkarsh Garg.
+
+Please see the README.md file for more information about this project.""") 
 
     def show_file_dialog(self):
         filePath = QtGui.QFileDialog.getOpenFileName(None,"Choose Dataset to Open", ".", "EEG File (*.edf)")
@@ -310,7 +335,7 @@ happy scripting
 
         self.setGeometry(50, 50, 350, 300)
 
-        self.setWindowTitle('Epilepsy Modeling')
+        self.setWindowTitle('Simple EEG Analysis Tool')
         self.resize(1200, 700)
         self.show()
 
