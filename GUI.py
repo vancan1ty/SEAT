@@ -57,7 +57,7 @@ class EpWindow(QtGui.QMainWindow):
         super(EpWindow, self).__init__()
         self.initUI()
         #CB default initialization below
-        filePath = "../EEGDATA/CAPSTONE_AB/BASHAREE_TEST.edf"
+        filePath = "../EEGDATA/CAPSTONE_AB/B_TEST.edf"
         self.canvas.loadData(filePath)
         self.populateUICanvas()
         self.ch1Spikes = None

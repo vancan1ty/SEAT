@@ -3,9 +3,12 @@ SEAT -- Simple EEG Analysis Tool
 
 SEAT is a tool which provides features for EEG visualization and manipulation.  It is built around MNE-Python, and also calls into a number of other open-source libraries and tools.
 
-Here is a screenshot:
+Screenshot
+-------------------------------------------
 ![Screenshot](SCREENSHOT.png?raw=true "Screenshot")
 
+Features
+-------------------------------------------
 Currently the primary features of SEAT are:
 
 1. EDF data import.
@@ -20,6 +23,9 @@ Features in progress include:
 2. Properly working spike detection (current algorithm is very poor).
 3. Full annotation support
 
+Credits
+-------------------------------------------
 
-Git Repo for CS3312 Project Implementation. 
+SEAT was built for a Georgia Tech Senior Capstone project.  The group members were Currell Berry, Johnny Farrow, Utkarsh Garg, Justin Jackson, and Michael Long.
 
+Currell Berry and Justin Jackson were the primary developers.
