@@ -39,7 +39,6 @@ from PyQt4 import QtGui
 from PyQt4 import QtCore
 from PyQt4.QtGui import QListWidgetItem, QListWidget, QDialog, QPushButton
 import CanvasHandler
-import peakFinder
 import DataProcessing
 import mne
 from mne.time_frequency import tfr_multitaper, tfr_stockwell, tfr_morlet
