@@ -1,0 +1,16 @@
+* EpModeling Feature planning
+
+** Mandatory
+- [ ] tick-marks 
+- [ ] arbitrary size data  //could be tricky
+  
+** Top Priority
+- [ ] montages
+- [ ] annotations import/export.  annotations browser //easy
+- [ ] jump to next button
+
+** Nice to have
+- [ ] simple plugin architecture
+- [ ] annotations view on bottom
+- [ ] plug in spike detector
+- [ ] ICA
