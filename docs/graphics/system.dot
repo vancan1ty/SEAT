@@ -1,0 +1,68 @@
+digraph G {
+
+        label ="SEAT Component Diagram"
+        fontsize = 8
+
+        node [
+                fontsize = 8
+                shape = "record"
+        ]
+
+        edge [
+                fontsize = 8
+        ]
+
+        GUI [
+                label = "{GUI.py|
+responsible for receiving input from the user,\l
+and configuring and displaying all GUI\l
+widgets (dialog boxes, sliders,\l
+scrollbars, input boxes, menus, etc...)\l}"
+        ]
+
+        CanvasHandler [
+                label = "{CanvasHandler.py|
+responsible for encapsulating logic\l
+relating to OpenGL control of the canvas}"
+        ]
+
+        LineDrawer [
+                   label ="{LineDrawer.py|
+responsible for generating OpenGL\l
+vertex data for drawing spike annotations.}"
+        ]
+
+
+        TextDrawer [
+                   label ="{TextDrawer.py|
+responsible for generating OpenGL\l
+vertex data for drawing text to the canvas.}"
+        ]
+
+        EEGScrollArea [
+                   label ="{EEGScrollArea.py|
+represents a widget which wraps an\l
+EEGCanvas and adds scrollbar capability\l}"
+        ]
+
+
+        DataProcessing [
+                label = "{DataProcessing.py|
+Contains algorithms which\l
+perform processing on the data.}"
+        ]
+
+       QIPythonWidget [
+                   label ="{QIPythonWidget.py|
+enables embedding of IPython console\l}"
+        ]
+
+        GUI -> CanvasHandler
+        GUI -> EEGScrollArea
+        GUI -> QIPythonWidget
+        EEGScrollArea -> CanvasHandler
+        GUI -> DataProcessing
+        CanvasHandler -> DataProcessing 
+        CanvasHandler -> LineDrawer 
+        CanvasHandler -> TextDrawer
+}
