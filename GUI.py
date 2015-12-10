@@ -359,7 +359,7 @@ happy scripting
 def main():
     parser = argparse.ArgumentParser(description='Simple EEG Analysis Tool.')
     parser.add_argument('-f', metavar='FILE', type=str, nargs=1,
-                        help='EDF file to open, leave blank if none desired', default=["demodata/B_TEST.edf"])
+                        help='EDF file to open, leave blank if none desired', default=["demodata/BC_TEST.edf"])
     args = parser.parse_args()
     print args.f[0]
 
