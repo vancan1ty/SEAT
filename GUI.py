@@ -28,6 +28,7 @@ BUGS:
 1. Can't handle large datasets!
 
 """
+import argparse
 import os
 os.environ['QT_API'] = 'pyqt'
 import sip
@@ -53,11 +54,10 @@ END_TIME = 6.0
 
 class EpWindow(QtGui.QMainWindow):
 
-    def __init__(self):
+    def __init__(self, filePath):
         super(EpWindow, self).__init__()
         self.initUI()
         #CB default initialization below
-        filePath = "../EEGDATA/CAPSTONE_AB/B_TEST.edf"
         self.canvas.loadData(filePath)
         self.populateUICanvas()
         self.ch1Spikes = None
@@ -357,8 +357,14 @@ happy scripting
         self.canvas.onStartEndChanged(startTimeT,endTimeT)
 
 def main():
+    parser = argparse.ArgumentParser(description='Simple EEG Analysis Tool.')
+    parser.add_argument('-f', metavar='FILE', type=str, nargs=1,
+                        help='EDF file to open, leave blank if none desired', default=["demodata/B_TEST.edf"])
+    args = parser.parse_args()
+    print args.f[0]
+
     app = QtGui.QApplication(sys.argv)
-    ex = EpWindow()
+    ex = EpWindow(args.f[0])
     sys.exit(app.exec_())
 
 if __name__ == '__main__':
