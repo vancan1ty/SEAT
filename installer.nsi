@@ -6,6 +6,7 @@
 !include "MUI2.nsh"
 !include nsDialogs.nsh
 !include LogicLib.nsh
+!include x64.nsh
 
 Name "Simple EEG Analysis Tool"
 Icon "images\SEAT_logo.ico"
@@ -15,13 +16,9 @@ OutFile "SEAT.exe"
 !define VERSIONMAJOR 1
 !define VERSIONMINOR 1
 !define VERSIONBUILD 1
-!define DESCRIPTION "Installer for Simple EEG Analysis Tool and Dependencies."
-!define ANACONDAFILE 'emacs-24.5.zip'
-!define MINGWFILE 'MinGW.zip'
-;!define EMACSFILE 'emacs2.zip'
-;!define MINGWFILE 'MinGW2.zip'
+!define DESCRIPTION "Simple EEG Analysis Tool."
 
-;default location where emacs powerpack itself will be installed
+;default location where SEAT itself will be installed
 InstallDir "$PROGRAMFILES\SEAT"
 ;Get installation folder from registry if available
 InstallDirRegKey HKCU "Software\SEAT" ""
@@ -51,6 +48,8 @@ LicenseData "LICENSE"
 ;!define MUI_WELCOMEPAGE_TEXT $(welcome_str)
 !insertmacro MUI_PAGE_WELCOME 
 
+Page custom myCheckPage
+
 !insertmacro MUI_PAGE_LICENSE "LICENSE"
 !insertmacro MUI_PAGE_COMPONENTS
 
@@ -71,6 +70,33 @@ Var Dialog
 Var Label
 ;Var Text
 
+Function myCheckPage
+    nsDialogs::Create 1018
+    Pop $Dialog
+
+    ${If} $Dialog == error
+	    Abort
+    ${EndIf}
+
+   !insertmacro MUI_HEADER_TEXT "Installation Note" ""
+
+   ${NSD_CreateLabel} 0 0 100% -2u "If you opt for the integrated python install, do not change the directory into which Python installs itself (C:\Miniconda2)."
+   Pop $Label
+
+   ;${NSD_CreateText} 0 13u 100% -13u "Type something here..."
+   ;Pop $Text
+
+   ${If} ${RunningX64}
+   
+   ${Else}
+           MessageBox MB_OK|MB_ICONSTOP   "The SEAT installer only works for 64 bit windows.  You will have to install SEAT manually."
+           Quit
+   ${EndIf}    
+
+   nsDialogs::Show
+
+FunctionEnd
+
 Function myConfirmPage
     nsDialogs::Create 1018
     Pop $Dialog
@@ -79,15 +105,16 @@ Function myConfirmPage
 	    Abort
     ${EndIf}
 
-    !insertmacro MUI_HEADER_TEXT "Confirm Installation" "Review Changes"
+   # 64 bit code
+   !insertmacro MUI_HEADER_TEXT "Confirm Installation" "Review Changes"
 
-    ${NSD_CreateLabel} 0 0 100% -2u "When you click 'Install', one of the following two things will happen, depending on your choice in the previous step.$\r$\n$\r$\n.A: You selected 'Install Python & Dependencies'$\r$\n1. 'Miniconda' python distribution will be installed at C:/Anaconda.$\r$\n2. Necessary python dependencies, including Scipy, Numpy, and MNE, will be downloaded and installed$\r$\n3. SEAT files and uninstaller will be installed in ${SEATINSTALLDIR}$\r$\n$\r$\nB:You did not select 'Install Python & Dependencies' on the previous screen:$\r$\n1. SEAT files and unisntaller will be installed in ${SEATINSTALLDIR}$\r$\n$\r$\nIf for any reason you are not satisfied you can always run the emacs powerpack uninstaller to revert all changes."
-    Pop $Label
+   ${NSD_CreateLabel} 0 0 100% -2u "When you click 'Install', one of the following two things will happen, depending on your choice in the previous step.$\r$\n$\r$\n.A: You selected 'Install Python & Dependencies'$\r$\n1. 'Miniconda' python distribution will be installed at C:/Anaconda.$\r$\n2. Necessary python dependencies, including Scipy, Numpy, and MNE, will be downloaded and installed$\r$\n3. SEAT files and uninstaller will be installed in ${SEATINSTALLDIR}$\r$\n$\r$\nB:You did not select 'Install Python & Dependencies' on the previous screen:$\r$\n1. SEAT files and unisntaller will be installed in ${SEATINSTALLDIR}$\r$\n$\r$\nIf for any reason you are not satisfied you can always run the SEAT uninstaller, followd by the Miniconda uninstaller, to revert all changes."
+   Pop $Label
 
-    ;${NSD_CreateText} 0 13u 100% -13u "Type something here..."
-    ;Pop $Text
+   ;${NSD_CreateText} 0 13u 100% -13u "Type something here..."
+   ;Pop $Text
 
-    nsDialogs::Show
+   nsDialogs::Show
 FunctionEnd
 
 InstType "Full (Installs SEAT+Python in standard locations)"
@@ -98,7 +125,7 @@ function .onInit
 functionEnd
 ;----------------------------------------------------------
  
-;global section, installs emacs powerpack reg keys and such.
+;global section, installs miniconda reg keys and such.
 Section 
 	SectionIn 1
 	# Files for the install directory - to build the installer, these should be in the same directory as the install script (this file)
@@ -120,7 +147,7 @@ Section
 	WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\SEAT" "UninstallString" "$\"$INSTDIR\uninstall.exe$\""
 	WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\SEAT" "QuietUninstallString" "$\"$INSTDIR\uninstall.exe$\" /S"
 	WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\SEAT" "InstallLocation" "$\"$INSTDIR$\""
-	WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\SEAT" "DisplayIcon" "$\"$INSTDIR\SEAT_logo.ico$\""
+	WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\SEAT" "DisplayIcon" "$\"$INSTDIR\images\SEAT_logo.ico$\""
 	WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\SEAT" "Publisher" "$\"SEAT$\""
 	WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\SEAT" "HelpLink" "$\"${HELPURL}$\""
 	WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\SEAT" "URLUpdateInfo" "$\"${UPDATEURL}$\""
@@ -160,26 +187,6 @@ SectionGroup "SEAT" SEATGroup
 	createShortCut "$SMPROGRAMS\SEAT\SEAT.lnk" "${SEATINSTALLDIR}\SEAT.bat" "" "$INSTDIR\images\SEAT_logo.ico"
 SectionEnd
  
-;Section "Basic Configuration"
-;    SectionIn 1
-;    SetOutPath "$PROFILE"
-;
-;    ;1. set HOME env variable
-;    !define env_hklm 'HKLM "SYSTEM\CurrentControlSet\Control\Session Manager\Environment"'
-;    !define env_hkcu 'HKCU "Environment"'
-;    WriteRegExpandStr ${env_hkcu} "HOME" $PROFILE 
-;
-;    ;2. if .emacs exists, then write .emacs.sample.  otherwise, write .emacs
-;    IfFileExists "$PROFILE\\.emacs" eexists enoexists
-;    eexists: ;then we just write a sample file and leave .emacs alone
-;    file  .emacs.sample
-;    goto after_dot_emacs
-;    enoexists:
-;    file /oname=.emacs .emacs.sample
-;    after_dot_emacs:
-;    
-;SectionEnd
-
 Section "Add SEAT to PATH" SEAT_PATH_SECTION
   	  SectionIn 1
 
@@ -187,14 +194,16 @@ Section "Add SEAT to PATH" SEAT_PATH_SECTION
   	  Call AddToPath
 SectionEnd
 
-Section "Add 'open with emacs' option to context menu" SEAT_CTX_SECTION
-  	  SectionIn 1
-
-	 WriteRegStr HKCR ".edf\OpenWithList\SEAT.bat" "" '${SEATINSTALLDIR}\SEAT.bat -f "%1"' ;CB not at all sure this will work.
-
-  	  Push "${SEATINSTALLDIR}\bin"
-  	  Call AddToPath
-SectionEnd
+;Section "Add 'open with SEAT' option to context menu" SEAT_CTX_SECTION
+;  	  SectionIn 1
+;
+;               ;CB the below does not work.  Anyway, I don't want to mess with the Registry keys for EDF files,
+;               ;in case users have other software are installed.
+;	 ;WriteRegStr HKCR ".edf\OpenWithList\SEAT.bat" "" '${SEATINSTALLDIR}\SEAT.bat -f "%1"' ;CB not at all sure this will work. 
+;
+;  	  Push "${SEATINSTALLDIR}\bin"
+;  	  Call AddToPath
+;SectionEnd
 
 
 SectionGroupEnd
@@ -206,12 +215,23 @@ SectionGroup "Python&SEAT Dependencies" depsGroup
 
 	File /r "installer_dependencies"
               
-              ExecWait '"$INSTDIR\Miniconda-latest-Windows-x86_64.exe"'
-	;Always check result on stack
-	Pop $0
-	StrCmp $0 "success" ok
+              ExecWait '"$INSTDIR\installer_dependencies\Miniconda-latest-Windows-x86_64.exe"' $0
+              ${If} $0 != 0 
 	   DetailPrint "$0" ;print error message to log
-	ok:
+                 MessageBox MB_OK|MB_ICONSTOP   "Miniconda installation failed."
+              ${EndIf}
+
+              ExecWait '"C:\Miniconda2\Scripts\conda.exe" install pip numpy scipy vispy pyqt ipython' $0
+              ${If} $0 != 0 
+	   DetailPrint "$0" ;print error message to log
+                 MessageBox MB_OK|MB_ICONSTOP   "Conda packages installation failed.  You will have to fix the installation to make it work."
+              ${EndIf}
+
+              ExecWait '"C:\Miniconda2\Scripts\pip.exe" install mne'
+              ${If} $0 != 0 
+	   DetailPrint "$0" ;print error message to log
+                 MessageBox MB_OK|MB_ICONSTOP   "MNE installation failed.  You will have to fix the installation to make it work."
+              ${EndIf}
 
 	;delete "${SEATINSTALLDIR}\Miniconda-latest-Windows-x86-64.exe"
 
@@ -255,26 +275,17 @@ Section "Uninstall"
 	DetailPrint "attempt removal of  $SMPROGRAMS\SEAT"
 	RMDir "$SMPROGRAMS\SEAT"
 
-  	; Remove emacs install dir from PATH
+  	; Remove SEAT install dir from PATH
   	Push "${SEATINSTALLDIR}\bin"
   	Call un.RemoveFromPath
 
 	RMDir /r "${SEATINSTALLDIR}"
 
-  	; Remove mingw bin from PATH
-  	Push "${SEATINSTALLDIR}\bin"
-  	Call un.RemoveFromPath
-
-  	; Remove msys bin from PATH
-  	Push "${SEATINSTALLDIR}\msys\1.0"
-  	Call un.RemoveFromPath
-	RMDir /r "${SEATINSTALLDIR}"
-	
 	Delete $INSTDIR\Uninstall.exe
 	
 	RMDir $INSTDIR
 
-	DeleteRegKey HKCR ".edf\OpenWithList\SEAT.bat" 
+	;DeleteRegKey HKCR ".edf\OpenWithList\SEAT.bat" 
 	
 	DeleteRegKey /ifempty HKCU "Software\SEAT"
 	DeleteRegKey HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\SEAT"
