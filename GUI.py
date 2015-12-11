@@ -305,7 +305,7 @@ Please see the README.md file for more information about this project.""")
 
         self.pythonScripter = QIPythonWidget(customBanner=
 """
-Welcome to EModeling
+Welcome to SEAT.
 All functionality of python and this application is available through this command line
 the variable 'window' contains a reference to your current window
 here are some commands to get you started:

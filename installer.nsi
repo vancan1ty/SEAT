@@ -80,7 +80,7 @@ Function myCheckPage
 
    !insertmacro MUI_HEADER_TEXT "Installation Note" ""
 
-   ${NSD_CreateLabel} 0 0 100% -2u "If you opt for the integrated python install, do not change the directory into which Python installs itself (C:\Miniconda2)."
+   ${NSD_CreateLabel} 0 0 100% -2u "If you opt for the integrated python install, do not change the directory into which Python installs itself (C:\Miniconda2).  If you don't know what you're doing, we recommend just clicking through the install screens without straying from the defaults."
    Pop $Label
 
    ;${NSD_CreateText} 0 13u 100% -13u "Type something here..."
@@ -108,7 +108,7 @@ Function myConfirmPage
    # 64 bit code
    !insertmacro MUI_HEADER_TEXT "Confirm Installation" "Review Changes"
 
-   ${NSD_CreateLabel} 0 0 100% -2u "When you click 'Install', one of the following two things will happen, depending on your choice in the previous step.$\r$\n$\r$\n.A: You selected 'Install Python & Dependencies'$\r$\n1. 'Miniconda' python distribution will be installed at C:/Anaconda.$\r$\n2. Necessary python dependencies, including Scipy, Numpy, and MNE, will be downloaded and installed$\r$\n3. SEAT files and uninstaller will be installed in ${SEATINSTALLDIR}$\r$\n$\r$\nB:You did not select 'Install Python & Dependencies' on the previous screen:$\r$\n1. SEAT files and unisntaller will be installed in ${SEATINSTALLDIR}$\r$\n$\r$\nIf for any reason you are not satisfied you can always run the SEAT uninstaller, followd by the Miniconda uninstaller, to revert all changes."
+   ${NSD_CreateLabel} 0 0 100% -2u "When you click 'Install', one of the following two things will happen, depending on your choice in the previous step.$\r$\n$\r$\n.A: You selected 'Install Python & Dependencies'$\r$\n1. 'Miniconda' python distribution will be installed at C:/Anaconda.$\r$\n2. Necessary python dependencies, including Scipy, Numpy, and MNE, will be downloaded and installed$\r$\n3. SEAT files and uninstaller will be installed in ${SEATINSTALLDIR}$\r$\n$\r$\nB:You did not select 'Install Python & Dependencies' on the previous screen:$\r$\n1. SEAT files and uninstaller will be installed in ${SEATINSTALLDIR}$\r$\n$\r$\nIf for any reason you are not satisfied you can always run the SEAT uninstaller, followd by the Miniconda uninstaller, to revert all changes."
    Pop $Label
 
    ;${NSD_CreateText} 0 13u 100% -13u "Type something here..."
@@ -177,6 +177,7 @@ SectionGroup "SEAT" SEATGroup
 	File "DataProcessing.py"
 	File "EEGScrollArea.py"
 	File "FixedSys.bmp"
+	File "GUI.py"
 	File "LICENSE"
 	File "LineDrawer.py"
 	File "QIPythonWidget.py"
@@ -221,17 +222,18 @@ SectionGroup "Python&SEAT Dependencies" depsGroup
                  MessageBox MB_OK|MB_ICONSTOP   "Miniconda installation failed."
               ${EndIf}
 
-              ExecWait '"C:\Miniconda2\Scripts\conda.exe" install pip numpy scipy vispy pyqt ipython' $0
+              ExecWait '"C:\Miniconda2\Scripts\conda.exe" install pip numpy scipy vispy pyqt ipython six matplotlib pillow ipython-qtconsole' $0
               ${If} $0 != 0 
 	   DetailPrint "$0" ;print error message to log
                  MessageBox MB_OK|MB_ICONSTOP   "Conda packages installation failed.  You will have to fix the installation to make it work."
               ${EndIf}
 
-              ExecWait '"C:\Miniconda2\Scripts\pip.exe" install mne'
+              ExecWait '"C:\Miniconda2\Scripts\pip.exe" install mne wavelets\.'
               ${If} $0 != 0 
 	   DetailPrint "$0" ;print error message to log
                  MessageBox MB_OK|MB_ICONSTOP   "MNE installation failed.  You will have to fix the installation to make it work."
               ${EndIf}
+
 
 	;delete "${SEATINSTALLDIR}\Miniconda-latest-Windows-x86-64.exe"
 
