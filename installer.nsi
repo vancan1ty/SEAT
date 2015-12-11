@@ -41,45 +41,17 @@ RequestExecutionLevel admin ;Require admin rights on NT6+
 # rtf or txt file - remember if it is txt, it must be in the DOS text format (\r\n)
 LicenseData "LICENSE"
 
-Function WriteToFile
-Exch $0 ;file to write to
-Exch
-Exch $1 ;text to write
- 
-  FileOpen $0 $0 w
-  FileSeek $0 0 END #go to end
-  FileWrite $0 $1 #write to file
-  FileClose $0
- 
-Pop $1
-Pop $0
-FunctionEnd
- 
-!macro WriteToFile NewLine File String
-  !if `${NewLine}` == true
-  Push `${String}$\r$\n`
-  !else
-  Push `${String}`
-  !endif
-  Push `${File}`
-  Call WriteToFile
-!macroend
-!define WriteToFile `!insertmacro WriteToFile false`
-!define WriteLineToFile `!insertmacro WriteToFile true`
-
 ;--------------------------------
 ;Pages
 
-;LangString welcome_str ${LANG_ENGLISH} "This wizard will guide you through the installation of Simple EEG Analysis Tool (SEAT).$\r$\n$\r$\nSEAT provides a simple environment, based on MNE-Python, to visualize and interact with EEG data. This installer will install SEAT, and optionally its dependencies including Python, on this computer.$\r$\n$\r$\nIt is recommended that you close all other applications before starting Setup.  This will make it possible to update relevant system files without having to reboot your computer$\r$\n$\r$\nClick next to continue."
-;!define MUI_WELCOMEPAGE_TEXT $(welcome_str)
+LangString welcome_str ${LANG_ENGLISH} "This installer DOES NOT install python dependencies for you.  You will have to install python and libraries yourself, as documented in the SEAT user manual and the screen following this one.$\r$\n$\r$\nThis wizard will guide you through the installation of Simple EEG Analysis Tool (SEAT).$\r$\n$\r$\nSEAT provides a simple environment, based on MNE-Python, to visualize and interact with EEG data. This installer will install SEAT on this computer.$\r$\n$\r$\nIt is recommended that you close all other applications before starting Setup.  This will make it possible to update relevant system files without having to reboot your computer$\r$\n$\r$\nClick next to continue."
+!define MUI_WELCOMEPAGE_TEXT $(welcome_str)
 !insertmacro MUI_PAGE_WELCOME 
 
 Page custom myCheckPage
 
 !insertmacro MUI_PAGE_LICENSE "LICENSE"
 !insertmacro MUI_PAGE_COMPONENTS
-
-Page custom myConfirmPage
 
 !define MUI_PAGE_CUSTOMFUNCTION_LEAVE BroadcastPathChanges
 !insertmacro MUI_PAGE_INSTFILES
@@ -106,53 +78,22 @@ Function myCheckPage
 
    !insertmacro MUI_HEADER_TEXT "Installation Note" ""
 
-   ${NSD_CreateLabel} 0 0 100% -2u "If you opt for the integrated python install, do not change the directory into which Python installs itself (C:\Miniconda2).  If you don't know what you're doing, we recommend just clicking through the install screens without straying from the defaults."
-   Pop $Label
+   ${NSD_CreateLabel} 0 0 100% -2u "Remember that you need to install python and dependencies yourself.  You can do this before or after installing SEAT. We recommend the python distribution Anaconda from Continuum Analytics.  https://www.continuum.io/downloads .$\r$\n$\r$\nAfter you have installed Anaconda, you will need to run the following commands from the directory containing SEAT (usually C:\Program Files(x86)\SEAT).$\r$\n1. conda install pip numpy scipy vispy pyqt ipython six matplotlib pillow ipython-qtconsole$\r$\n2. pip install mne wavelets\."
 
-   ;${NSD_CreateText} 0 13u 100% -13u "Type something here..."
-   ;Pop $Text
-
-   ${If} ${RunningX64}
-   
-   ${Else}
-           MessageBox MB_OK|MB_ICONSTOP   "The SEAT installer only works for 64 bit windows.  You will have to install SEAT manually."
-           Quit
-   ${EndIf}    
-
-   nsDialogs::Show
-
-FunctionEnd
-
-Function myConfirmPage
-    nsDialogs::Create 1018
-    Pop $Dialog
-
-    ${If} $Dialog == error
-	    Abort
-    ${EndIf}
-
-   # 64 bit code
-   !insertmacro MUI_HEADER_TEXT "Confirm Installation" "Review Changes"
-
-   ${NSD_CreateLabel} 0 0 100% -2u "When you click 'Install', one of the following two things will happen, depending on your choice in the previous step.$\r$\n$\r$\n.A: You selected 'Install Python & Dependencies'$\r$\n1. 'Miniconda' python distribution will be installed at C:/Anaconda.$\r$\n2. Necessary python dependencies, including Scipy, Numpy, and MNE, will be downloaded and installed$\r$\n3. SEAT files and uninstaller will be installed in ${SEATINSTALLDIR}$\r$\n$\r$\nB:You did not select 'Install Python & Dependencies' on the previous screen:$\r$\n1. SEAT files and uninstaller will be installed in ${SEATINSTALLDIR}$\r$\n$\r$\nIf for any reason you are not satisfied you can always run the SEAT uninstaller, followd by the Miniconda uninstaller, to revert all changes."
    Pop $Label
 
    ;${NSD_CreateText} 0 13u 100% -13u "Type something here..."
    ;Pop $Text
 
    nsDialogs::Show
+
 FunctionEnd
 
-InstType "Full (Installs SEAT+Python in standard locations)"
+InstType "Full (Installs SEAT in standard location.)"
  
-Var INSTALLOWNPYTHON
-Var PYTHONPATH
-
 ;------------ functions and macros --------------
 function .onInit
 	setShellVarContext all
-              StrCpy $INSTALLOWNPYTHON "0"
-              StrCpy $PYTHONPATH "python"
 functionEnd
 ;----------------------------------------------------------
  
@@ -240,81 +181,16 @@ SectionEnd
 
 SectionGroupEnd
 
-SectionGroup "Python&SEAT Dependencies" depsGroup
-    Section "Python and Dependencies" Python
-	SectionIn 1
-	SetOutPath "${SEATINSTALLDIR}"
-
-              ;;if python already exists, then we try to run conda.  if conda fails, then we go ahead and install our own thing.
-              ExecWait '"python" -c "print 1" ' $0
-              ${If} $0 != 0 
-	   DetailPrint "installer detected that you don't have python or your python is not python 2.  installing custom python" ;print error message to log
-                  StrCpy $INSTALLOWNPYTHON "1"
-                  StrCpy $PYTHONPATH "C:\Miniconda2\python.exe"
-              ${Else}
-                        ExecWait '"conda" -V' $1
-                        ${If} $1 != 0 
-                                DetailPrint "installer detected that your python doesn't include 'conda' utility. installing custom python" 
-                                StrCpy $INSTALLOWNPYTHON "1"
-                                StrCpy $PYTHONPATH "C:\Miniconda2\python.exe"
-                        ${EndIf}
-              ${EndIf}
-
-              
-              ${If} $INSTALLOWNPYTHON = 1 
-                 File /r "installer_dependencies"
-                 
-                 ExecWait '"$INSTDIR\installer_dependencies\Miniconda-latest-Windows-x86_64.exe"' $0
-                 ${If} $0 != 0 
-   	   DetailPrint "$0" ;print error message to log
-                    MessageBox MB_OK|MB_ICONSTOP   "Miniconda installation failed."
-                 ${EndIf}
-
-                 ExecWait '"C:\Miniconda2\Scripts\conda.exe" install pip numpy scipy vispy pyqt ipython six matplotlib pillow ipython-qtconsole' $0
-                 ${If} $0 != 0 
-              DetailPrint "$0" ;print error message to log
-                    MessageBox MB_OK|MB_ICONSTOP   "Conda packages installation failed.  You will have to fix the installation to make it work."
-                 ${EndIf}
-
-                 ExecWait '"C:\Miniconda2\Scripts\conda.exe" install mne wavelets\.'
-                 ${If} $0 != 0 
-              DetailPrint "$0" ;print error message to log
-                    MessageBox MB_OK|MB_ICONSTOP   "MNE installation failed.  You will have to fix the installation to make it work."
-                 ${EndIf}
-
-                 !insertmacro WriteToFile false  'SEAT.bat' "$PYTHONPATH GUI.py %*" 
-              ${Else}
-
-                 ExecWait '"conda" install pip numpy scipy vispy pyqt ipython six matplotlib pillow ipython-qtconsole' $0
-                 ${If} $0 != 0 
-              DetailPrint "$0" ;print error message to log
-                    MessageBox MB_OK|MB_ICONSTOP   "Conda packages installation failed.  You will have to fix the installation to make it work."
-                 ${EndIf}
-
-                 ExecWait '"pip" install mne wavelets\.'
-                 ${If} $0 != 0 
-              DetailPrint "$0" ;print error message to log
-                    MessageBox MB_OK|MB_ICONSTOP   "MNE installation failed.  You will have to fix the installation to make it work."
-                 ${EndIf}
-
-                 !insertmacro WriteToFile false  'SEAT.bat' "$PYTHONPATH GUI.py %*" 
-              ${EndIf}
-
-    SectionEnd
-
-SectionGroupEnd
 
 ;--------------------------------
 ;Descriptions
 
 ;Language strings
 LangString DESC_SEAT ${LANG_ENGLISH} "Install and configure SEAT."
-LangString DESC_Python ${LANG_ENGLISH} "Install Python and SEAT Dependencies."
 
 ;Assign language strings to sections
 !insertmacro MUI_FUNCTION_DESCRIPTION_BEGIN
 	     !insertmacro MUI_DESCRIPTION_TEXT ${SEAT} $(DESC_SEAT)
-	     !insertmacro MUI_DESCRIPTION_TEXT ${Python} $(DESC_Python)
 !insertmacro MUI_FUNCTION_DESCRIPTION_END
 
 ;--------------------------------
