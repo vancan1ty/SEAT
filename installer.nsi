@@ -41,6 +41,32 @@ RequestExecutionLevel admin ;Require admin rights on NT6+
 # rtf or txt file - remember if it is txt, it must be in the DOS text format (\r\n)
 LicenseData "LICENSE"
 
+Function WriteToFile
+Exch $0 ;file to write to
+Exch
+Exch $1 ;text to write
+ 
+  FileOpen $0 $0 w
+  FileSeek $0 0 END #go to end
+  FileWrite $0 $1 #write to file
+  FileClose $0
+ 
+Pop $1
+Pop $0
+FunctionEnd
+ 
+!macro WriteToFile NewLine File String
+  !if `${NewLine}` == true
+  Push `${String}$\r$\n`
+  !else
+  Push `${String}`
+  !endif
+  Push `${File}`
+  Call WriteToFile
+!macroend
+!define WriteToFile `!insertmacro WriteToFile false`
+!define WriteLineToFile `!insertmacro WriteToFile true`
+
 ;--------------------------------
 ;Pages
 
@@ -119,9 +145,14 @@ FunctionEnd
 
 InstType "Full (Installs SEAT+Python in standard locations)"
  
+Var INSTALLOWNPYTHON
+Var PYTHONPATH
+
 ;------------ functions and macros --------------
 function .onInit
 	setShellVarContext all
+              StrCpy $INSTALLOWNPYTHON "0"
+              StrCpy $PYTHONPATH "python"
 functionEnd
 ;----------------------------------------------------------
  
@@ -214,28 +245,60 @@ SectionGroup "Python&SEAT Dependencies" depsGroup
 	SectionIn 1
 	SetOutPath "${SEATINSTALLDIR}"
 
-	File /r "installer_dependencies"
+              ;;if python already exists, then we try to run conda.  if conda fails, then we go ahead and install our own thing.
+              ExecWait '"python" -c "print 1" ' $0
+              ${If} $0 != 0 
+	   DetailPrint "installer detected that you don't have python or your python is not python 2.  installing custom python" ;print error message to log
+                  StrCpy $INSTALLOWNPYTHON "1"
+                  StrCpy $PYTHONPATH "C:\Miniconda2\python.exe"
+              ${Else}
+                        ExecWait '"conda" -V' $1
+                        ${If} $1 != 0 
+                                DetailPrint "installer detected that your python doesn't include 'conda' utility. installing custom python" 
+                                StrCpy $INSTALLOWNPYTHON "1"
+                                StrCpy $PYTHONPATH "C:\Miniconda2\python.exe"
+                        ${EndIf}
+              ${EndIf}
+
               
-              ExecWait '"$INSTDIR\installer_dependencies\Miniconda-latest-Windows-x86_64.exe"' $0
-              ${If} $0 != 0 
-	   DetailPrint "$0" ;print error message to log
-                 MessageBox MB_OK|MB_ICONSTOP   "Miniconda installation failed."
+              ${If} $INSTALLOWNPYTHON = 1 
+                 File /r "installer_dependencies"
+                 
+                 ExecWait '"$INSTDIR\installer_dependencies\Miniconda-latest-Windows-x86_64.exe"' $0
+                 ${If} $0 != 0 
+   	   DetailPrint "$0" ;print error message to log
+                    MessageBox MB_OK|MB_ICONSTOP   "Miniconda installation failed."
+                 ${EndIf}
+
+                 ExecWait '"C:\Miniconda2\Scripts\conda.exe" install pip numpy scipy vispy pyqt ipython six matplotlib pillow ipython-qtconsole' $0
+                 ${If} $0 != 0 
+              DetailPrint "$0" ;print error message to log
+                    MessageBox MB_OK|MB_ICONSTOP   "Conda packages installation failed.  You will have to fix the installation to make it work."
+                 ${EndIf}
+
+                 ExecWait '"C:\Miniconda2\Scripts\conda.exe" install mne wavelets\.'
+                 ${If} $0 != 0 
+              DetailPrint "$0" ;print error message to log
+                    MessageBox MB_OK|MB_ICONSTOP   "MNE installation failed.  You will have to fix the installation to make it work."
+                 ${EndIf}
+
+                 !insertmacro WriteToFile false  'SEAT.bat' "$PYTHONPATH GUI.py %*" 
+              ${Else}
+
+                 ExecWait '"conda" install pip numpy scipy vispy pyqt ipython six matplotlib pillow ipython-qtconsole' $0
+                 ${If} $0 != 0 
+              DetailPrint "$0" ;print error message to log
+                    MessageBox MB_OK|MB_ICONSTOP   "Conda packages installation failed.  You will have to fix the installation to make it work."
+                 ${EndIf}
+
+                 ExecWait '"pip" install mne wavelets\.'
+                 ${If} $0 != 0 
+              DetailPrint "$0" ;print error message to log
+                    MessageBox MB_OK|MB_ICONSTOP   "MNE installation failed.  You will have to fix the installation to make it work."
+                 ${EndIf}
+
+                 !insertmacro WriteToFile false  'SEAT.bat' "$PYTHONPATH GUI.py %*" 
               ${EndIf}
-
-              ExecWait '"C:\Miniconda2\Scripts\conda.exe" install pip numpy scipy vispy pyqt ipython six matplotlib pillow ipython-qtconsole' $0
-              ${If} $0 != 0 
-	   DetailPrint "$0" ;print error message to log
-                 MessageBox MB_OK|MB_ICONSTOP   "Conda packages installation failed.  You will have to fix the installation to make it work."
-              ${EndIf}
-
-              ExecWait '"C:\Miniconda2\Scripts\pip.exe" install mne wavelets\.'
-              ${If} $0 != 0 
-	   DetailPrint "$0" ;print error message to log
-                 MessageBox MB_OK|MB_ICONSTOP   "MNE installation failed.  You will have to fix the installation to make it work."
-              ${EndIf}
-
-
-	;delete "${SEATINSTALLDIR}\Miniconda-latest-Windows-x86-64.exe"
 
     SectionEnd
 
@@ -260,6 +323,7 @@ LangString DESC_Python ${LANG_ENGLISH} "Install Python and SEAT Dependencies."
  
 ;function un.onInit
 ;	!insertmacro VerifyUserIsAdmin
+               
 ;functionEnd
 
 Section "Uninstall"
@@ -489,3 +553,4 @@ Function un.BroadcastPathChanges
   SendMessage ${HWND_BROADCAST} ${WM_WININICHANGE} 0 "STR:Environment" /TIMEOUT=1500
   DetailPrint "Completed."
 FunctionEnd
+
